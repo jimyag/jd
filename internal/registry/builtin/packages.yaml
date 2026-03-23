@@ -132,3 +132,71 @@ packages:
     arch_map:
       amd64: amd64
       arm64: arm64
+
+  - name: dive
+    description: Docker image layer explorer
+    version_from:
+      type: github
+      repo: wagoodman/dive
+      tag_prefix: "v"
+    url_template: "https://github.com/wagoodman/dive/releases/download/{{.Version}}/dive_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "dive"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: task
+    description: Task runner / build tool (Taskfile)
+    version_from:
+      type: github
+      repo: go-task/task
+      tag_prefix: "v"
+    url_template: "https://taskfile.dev/install.sh"
+    mode: script
+    supported_platforms:
+      - linux
+      - darwin
+
+  - name: chezmoi
+    description: Dotfiles manager
+    version_from:
+      type: github
+      repo: twpayne/chezmoi
+      tag_prefix: "v"
+    url_template: "https://github.com/twpayne/chezmoi/releases/download/{{.Version}}/chezmoi_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "chezmoi"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: hugo
+    description: Static site generator (extended edition)
+    version_from:
+      type: github
+      repo: gohugoio/hugo
+      tag_prefix: "v"
+    url_template: "https://github.com/gohugoio/hugo/releases/download/{{.Version}}/hugo_extended_{{.VersionNoV}}_linux-{{.Arch}}.tar.gz"
+    inner_path: "hugo"
+    supported_platforms:
+      - linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: golangci-lint
+    description: Go linters aggregator
+    version_from:
+      type: github
+      repo: golangci/golangci-lint
+      tag_prefix: "v"
+    url_template: "https://golangci-lint.run/install.sh"
+    mode: script
+    supported_platforms:
+      - linux
+      - darwin
