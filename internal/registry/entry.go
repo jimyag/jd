@@ -26,8 +26,7 @@ type PackageEntry struct {
 	InstallDir         string            `yaml:"install_dir"`         // install whole directory here instead of single binary (supports ~ and templates)
 	Symlink            string            `yaml:"symlink"`             // create/update this symlink pointing to install_dir after install (supports ~)
 	VersionPrefix      string            `yaml:"version_prefix"`      // prepended to user-supplied version if not already present (e.g. "go" for Go)
-	ScriptEnv          map[string]string `yaml:"script_env"`          // default env vars passed to the install script (mode: script only)
-	VersionEnv         string            `yaml:"version_env"`         // env var name used to pass version to the script (e.g. "TAILSCALE_VERSION")
+	Env                map[string]string `yaml:"env"`                 // env vars injected when executing install script; values support templates (mode: script only)
 	SupportedPlatforms []string          `yaml:"supported_platforms"` // "os/arch" pairs; empty means all supported
 	OSMap              map[string]string `yaml:"os_map"`
 	ArchMap            map[string]string `yaml:"arch_map"`
@@ -70,6 +69,22 @@ func (e *PackageEntry) GetBinaryName() string {
 		return e.BinaryName
 	}
 	return e.Name
+}
+
+// RenderEnv renders each env value as a template and returns "KEY=VALUE" pairs,
+// skipping entries whose rendered value is empty.
+func (e *PackageEntry) RenderEnv(version, os, arch string) ([]string, error) {
+	result := make([]string, 0, len(e.Env))
+	for k, v := range e.Env {
+		rendered, err := e.render(v, version, os, arch)
+		if err != nil {
+			return nil, fmt.Errorf("render env %s: %w", k, err)
+		}
+		if rendered != "" {
+			result = append(result, k+"="+rendered)
+		}
+	}
+	return result, nil
 }
 
 // RenderInstallDir renders the InstallDir template.

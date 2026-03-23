@@ -23,9 +23,9 @@ packages:
       tag_prefix: "v"
     url_template: "https://tailscale.com/install.sh"
     mode: script
-    version_env: "TAILSCALE_VERSION"
-    script_env:
+    env:
       TRACK: stable
+      TAILSCALE_VERSION: "{{.Version}}"
     supported_platforms:
       - linux
 

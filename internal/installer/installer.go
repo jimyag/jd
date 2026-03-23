@@ -328,14 +328,14 @@ func installScript(ctx context.Context, url string, entry *registry.PackageEntry
 	}
 	defer os.Remove(resp)
 
-	// Build env: inherit current environment, then overlay script_env, then version.
-	env := os.Environ()
-	for k, v := range entry.ScriptEnv {
-		env = append(env, k+"="+v)
+	// Build env: inherit current environment, then overlay rendered env vars.
+	extra, err := entry.RenderEnv(version, runtime.GOOS, runtime.GOARCH)
+	if err != nil {
+		return err
 	}
-	if entry.VersionEnv != "" && version != "" {
-		env = append(env, entry.VersionEnv+"="+version)
-		fmt.Printf("  version: %s=%s\n", entry.VersionEnv, version)
+	env := append(os.Environ(), extra...)
+	for _, kv := range extra {
+		fmt.Printf("  env: %s\n", kv)
 	}
 
 	fmt.Printf("  executing script...\n")
