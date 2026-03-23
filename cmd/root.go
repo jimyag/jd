@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	buildversion "github.com/jimmicro/version"
 	"github.com/jimyag/jd/internal/installer"
 	"github.com/jimyag/jd/internal/registry"
 	"github.com/jimyag/jd/internal/versioner"
@@ -15,10 +16,13 @@ import (
 var rootListVersions bool
 
 var rootCmd = &cobra.Command{
-	Use:   "jd",
-	Short: "jimyag-download: install binaries from GitHub Releases",
-	Long:  "jd installs and updates CLI tools from GitHub Releases using a built-in registry.",
-	Args:  cobra.ArbitraryArgs,
+	Use:           "jd",
+	Short:         "jimyag-download: install binaries from GitHub Releases",
+	Long:          "jd installs and updates CLI tools from GitHub Releases using a built-in registry.",
+	Version:       buildversion.Version(),
+	Args:          cobra.ArbitraryArgs,
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return cmd.Help()
@@ -41,6 +45,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().BoolVar(&rootListVersions, "list", false, "List available versions")
+	rootCmd.SetVersionTemplate("{{.Version}}\n")
 }
 
 // Execute runs the root command.
