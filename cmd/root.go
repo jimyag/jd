@@ -9,6 +9,7 @@ import (
 	buildversion "github.com/jimmicro/version"
 	"github.com/jimyag/jd/internal/installer"
 	"github.com/jimyag/jd/internal/registry"
+	"github.com/jimyag/jd/internal/versioner"
 	"github.com/spf13/cobra"
 )
 
@@ -63,7 +64,7 @@ func parsePackageArg(arg string) (name, version string) {
 
 func printVersions(entry *registry.PackageEntry) error {
 	fmt.Printf("fetching versions for %s...\n", entry.Name)
-	versions, err := installer.ListVersions(entry)
+	versions, err := versioner.List(entry.VersionFrom)
 	if err != nil {
 		return err
 	}

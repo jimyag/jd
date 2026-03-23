@@ -154,22 +154,7 @@ func installDir(dst string, entry *registry.PackageEntry, version, goos, goarch 
 }
 
 func resolveLatest(entry *registry.PackageEntry) (string, error) {
-	switch entry.VersionFrom.Type {
-	case "godev":
-		return versioner.GoDevLatestVersion()
-	default:
-		return versioner.LatestVersion(entry.VersionFrom.Repo)
-	}
-}
-
-// ListVersions returns available versions for the given package.
-func ListVersions(entry *registry.PackageEntry) ([]string, error) {
-	switch entry.VersionFrom.Type {
-	case "godev":
-		return versioner.GoDevListVersions()
-	default:
-		return versioner.ListVersions(entry.VersionFrom.Repo)
-	}
+	return versioner.Latest(entry.VersionFrom)
 }
 
 func locateBinary(dst string, entry *registry.PackageEntry, version, goos, goarch string) (string, error) {
