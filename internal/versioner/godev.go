@@ -8,13 +8,10 @@ import (
 
 const goDevDLAPI = "https://go.dev/dl/?mode=json"
 
-type goDevRelease struct {
-	Version string `json:"version"`
-	Stable  bool   `json:"stable"`
-}
+// GoDev implements Versioner using the go.dev/dl API.
+type GoDev struct{}
 
-// GoDevLatestVersion returns the latest stable Go version (e.g. "go1.26.1").
-func GoDevLatestVersion() (string, error) {
+func (g *GoDev) Latest() (string, error) {
 	releases, err := fetchGoDevReleases(goDevDLAPI)
 	if err != nil {
 		return "", err
@@ -27,8 +24,7 @@ func GoDevLatestVersion() (string, error) {
 	return "", fmt.Errorf("no stable Go release found")
 }
 
-// GoDevListVersions returns all stable Go versions.
-func GoDevListVersions() ([]string, error) {
+func (g *GoDev) List() ([]string, error) {
 	releases, err := fetchGoDevReleases(goDevDLAPI + "&include=all")
 	if err != nil {
 		return nil, err
@@ -40,6 +36,11 @@ func GoDevListVersions() ([]string, error) {
 		}
 	}
 	return versions, nil
+}
+
+type goDevRelease struct {
+	Version string `json:"version"`
+	Stable  bool   `json:"stable"`
 }
 
 func fetchGoDevReleases(url string) ([]goDevRelease, error) {

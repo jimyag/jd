@@ -10,35 +10,14 @@ import (
 
 const githubAPIBase = "https://api.github.com"
 
-type githubRelease struct {
-	TagName    string `json:"tag_name"`
-	Prerelease bool   `json:"prerelease"`
-	Draft      bool   `json:"draft"`
+// GitHub implements Versioner using the GitHub Releases API.
+type GitHub struct {
+	repo string
 }
 
-// ListVersions returns up to 30 stable release versions for the given repo.
-func ListVersions(repo string) ([]string, error) {
-	url := fmt.Sprintf("%s/repos/%s/releases?per_page=30", githubAPIBase, repo)
-	releases, err := fetchReleases(url)
-	if err != nil {
-		return nil, err
-	}
-
-	versions := make([]string, 0, len(releases))
-	for _, r := range releases {
-		if r.Prerelease || r.Draft {
-			continue
-		}
-		versions = append(versions, r.TagName)
-	}
-	return versions, nil
-}
-
-// LatestVersion returns the latest stable release tag for the given repo.
-func LatestVersion(repo string) (string, error) {
-	url := fmt.Sprintf("%s/repos/%s/releases/latest", githubAPIBase, repo)
-
-	req, err := newRequest(url)
+func (g *GitHub) Latest() (string, error) {
+	url := fmt.Sprintf("%s/repos/%s/releases/latest", githubAPIBase, g.repo)
+	req, err := newGitHubRequest(url)
 	if err != nil {
 		return "", err
 	}
@@ -63,8 +42,31 @@ func LatestVersion(repo string) (string, error) {
 	return release.TagName, nil
 }
 
-func fetchReleases(url string) ([]githubRelease, error) {
-	req, err := newRequest(url)
+func (g *GitHub) List() ([]string, error) {
+	url := fmt.Sprintf("%s/repos/%s/releases?per_page=30", githubAPIBase, g.repo)
+	releases, err := fetchGitHubReleases(url)
+	if err != nil {
+		return nil, err
+	}
+
+	versions := make([]string, 0, len(releases))
+	for _, r := range releases {
+		if r.Prerelease || r.Draft {
+			continue
+		}
+		versions = append(versions, r.TagName)
+	}
+	return versions, nil
+}
+
+type githubRelease struct {
+	TagName    string `json:"tag_name"`
+	Prerelease bool   `json:"prerelease"`
+	Draft      bool   `json:"draft"`
+}
+
+func fetchGitHubReleases(url string) ([]githubRelease, error) {
+	req, err := newGitHubRequest(url)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +91,7 @@ func fetchReleases(url string) ([]githubRelease, error) {
 	return releases, nil
 }
 
-func newRequest(url string) (*http.Request, error) {
+func newGitHubRequest(url string) (*http.Request, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
