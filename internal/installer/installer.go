@@ -242,6 +242,16 @@ func ensureBinDir(dir string) error {
 }
 
 func moveBinary(src, dst string) error {
+	// Try rename first (fastest, atomic, handles busy files if on same filesystem)
+	if err := os.Rename(src, dst); err == nil {
+		return nil
+	}
+
+	// If rename fails (likely cross-device), we must copy.
+	// To avoid "text file busy" when updating the running binary, remove the destination first.
+	// Unlinking a running binary is allowed on Unix.
+	_ = os.Remove(dst)
+
 	in, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf("open source binary: %w", err)
