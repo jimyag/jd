@@ -14,6 +14,9 @@ import (
 )
 
 var rootListVersions bool
+var rootListAllVersions bool
+
+const defaultVersionLimit = 10
 
 var rootCmd = &cobra.Command{
 	Use:           "jd",
@@ -36,15 +39,16 @@ var rootCmd = &cobra.Command{
 		if !ok {
 			return suggestNotFound(r, name)
 		}
-		if rootListVersions {
-			return printVersions(entry)
+		if rootListVersions || rootListAllVersions {
+			return printVersions(entry, rootListAllVersions)
 		}
 		return installer.Install(context.Background(), entry, version)
 	},
 }
 
 func init() {
-	rootCmd.Flags().BoolVar(&rootListVersions, "list", false, "List available versions")
+	rootCmd.Flags().BoolVar(&rootListVersions, "list", false, "List latest 10 versions")
+	rootCmd.Flags().BoolVar(&rootListAllVersions, "list-all", false, "List all available versions")
 	rootCmd.SetVersionTemplate("{{.Version}}\n")
 }
 
@@ -62,11 +66,14 @@ func parsePackageArg(arg string) (name, version string) {
 	return
 }
 
-func printVersions(entry *registry.PackageEntry) error {
+func printVersions(entry *registry.PackageEntry, all bool) error {
 	fmt.Printf("fetching versions for %s...\n", entry.Name)
 	versions, err := versioner.List(entry.VersionFrom)
 	if err != nil {
 		return err
+	}
+	if !all && len(versions) > defaultVersionLimit {
+		versions = versions[:defaultVersionLimit]
 	}
 	for i, v := range versions {
 		if i == 0 {
