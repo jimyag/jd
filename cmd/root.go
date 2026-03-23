@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -15,25 +16,55 @@ import (
 
 var rootListVersions bool
 var rootListAllVersions bool
+var rootComplete string
 
 const defaultVersionLimit = 10
 
 var rootCmd = &cobra.Command{
-	Use:           "jd",
-	Short:         "jimyag-download: install binaries from GitHub Releases",
-	Long:          "jd installs and updates CLI tools from GitHub Releases using a built-in registry.",
-	Version:       buildversion.Version(),
-	Args:          cobra.ArbitraryArgs,
+	Use:   "jd",
+	Short: "jimyag-download: install binaries from GitHub Releases",
+	Long:  "jd installs and updates CLI tools from GitHub Releases using a built-in registry.",
+	CompletionOptions: cobra.CompletionOptions{
+		DisableDefaultCmd: true,
+	},
+	Version: buildversion.Version(),
+	Args:    cobra.ArbitraryArgs,
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(args) != 0 {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
+		r, err := registry.LoadBuiltin()
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+		pkgs := r.List()
+		var names []string
+		for _, p := range pkgs {
+			if strings.HasPrefix(p.Name, toComplete) {
+				names = append(names, p.Name)
+			}
+		}
+		return names, cobra.ShellCompDirectiveNoFileComp
+	},
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return cmd.Help()
+		if rootComplete != "" {
+			return runComplete(cmd, rootComplete)
 		}
+
 		r, err := registry.LoadBuiltin()
 		if err != nil {
 			return err
 		}
+
+		if len(args) == 0 {
+			if rootListVersions || rootListAllVersions {
+				return printAllPackages(r)
+			}
+			return cmd.Help()
+		}
+
 		name, version := parsePackageArg(args[0])
 		entry, ok := r.Find(name)
 		if !ok {
@@ -47,9 +78,41 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.Flags().BoolVar(&rootListVersions, "list", false, "List latest 10 versions")
-	rootCmd.Flags().BoolVar(&rootListAllVersions, "list-all", false, "List all available versions")
+	rootCmd.Flags().BoolVar(&rootListVersions, "list", false, "List all packages or package versions")
+	rootCmd.Flags().BoolVar(&rootListAllVersions, "list-all", false, "List all available versions for a package")
+	rootCmd.Flags().StringVar(&rootComplete, "complete", "", "Generate shell completion script (bash, zsh, fish, powershell)")
 	rootCmd.SetVersionTemplate("{{.Version}}\n")
+}
+
+func runComplete(cmd *cobra.Command, shell string) error {
+	var err error
+	switch shell {
+	case "bash":
+		err = cmd.Root().GenBashCompletion(os.Stdout)
+	case "zsh":
+		err = cmd.Root().GenZshCompletion(os.Stdout)
+	case "fish":
+		err = cmd.Root().GenFishCompletion(os.Stdout, true)
+	case "powershell":
+		err = cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+	default:
+		return fmt.Errorf("unsupported shell: %q (supported: bash, zsh, fish, powershell)", shell)
+	}
+	return err
+}
+
+func printAllPackages(r *registry.Registry) error {
+	pkgs := r.List()
+	sort.Slice(pkgs, func(i, j int) bool {
+		return pkgs[i].Name < pkgs[j].Name
+	})
+
+	fmt.Printf("%-20s  %s\n", "NAME", "DESCRIPTION")
+	fmt.Printf("%-20s  %s\n", "----", "-----------")
+	for _, p := range pkgs {
+		fmt.Printf("%-20s  %s\n", p.Name, p.Description)
+	}
+	return nil
 }
 
 // Execute runs the root command.
@@ -67,6 +130,10 @@ func parsePackageArg(arg string) (name, version string) {
 }
 
 func printVersions(entry *registry.PackageEntry, all bool) error {
+	if entry.VersionFrom.Type == "" {
+		fmt.Printf("package %s does not support version listing (installed via %s)\n", entry.Name, entry.Mode)
+		return nil
+	}
 	fmt.Printf("fetching versions for %s...\n", entry.Name)
 	versions, err := versioner.List(entry.VersionFrom)
 	if err != nil {
