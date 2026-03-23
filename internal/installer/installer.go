@@ -57,10 +57,17 @@ func Install(ctx context.Context, entry *registry.PackageEntry, version string) 
 
 	dst := filepath.Join(tmpDir, "download")
 
+	// Use ModeFile for direct binaries so go-getter saves to dst as a file.
+	// Use ModeDir for archives so go-getter extracts into dst as a directory.
+	getMode := getter.ModeDir
+	if !entry.IsArchive {
+		getMode = getter.ModeFile
+	}
+
 	req := &getter.Request{
 		Src:     url,
 		Dst:     dst,
-		GetMode: getter.ModeAny,
+		GetMode: getMode,
 	}
 
 	client := &getter.Client{}
