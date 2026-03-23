@@ -4,6 +4,12 @@ A CLI tool that downloads and installs developer tools from GitHub Releases usin
 
 ## Installation
 
+Install using curl:
+```bash
+curl -fsSL https://raw.githubusercontent.com/jimyag/jd/main/install.sh | sh
+```
+
+Or using Go:
 ```bash
 go install github.com/jimyag/jd@latest
 ```
