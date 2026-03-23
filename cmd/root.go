@@ -19,7 +19,7 @@ var rootListAllVersions bool
 var rootComplete string
 var rootMethod string
 
-var loadRegistry = registry.LoadBuiltin
+var loadRegistry = registry.Load
 var installPackage = installer.InstallWithOptions
 
 const defaultVersionLimit = 10

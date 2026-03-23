@@ -55,6 +55,37 @@ jd gh
 
 The list of supported packages is maintained in the [internal/registry/builtin/packages.yaml](internal/registry/builtin/packages.yaml) file. 
 
+You can also extend or override the built-in registry locally:
+- `~/.config/jd/packages.yaml`
+- `~/.config/jd/packages.d/*.yaml`
+
+Load order is:
+1. built-in registry
+2. `~/.config/jd/packages.yaml`
+3. `~/.config/jd/packages.d/*.yaml` in lexical filename order
+
+If the same package name appears multiple times, the later definition replaces the earlier one.
+
+Example local registry:
+```yaml
+packages:
+  - name: kubectl
+    description: local kubectl override
+    doc_url: "https://kubernetes.io/docs/tasks/tools/"
+    mode: file
+    version_from:
+      type: github
+      repo: kubernetes/kubernetes
+      tag_prefix: "v"
+    url_template: "https://dl.k8s.io/release/{{.Version}}/bin/{{.OS}}/{{.Arch}}/kubectl"
+
+  - name: my-tool
+    description: custom local package
+    doc_url: "https://example.com/my-tool"
+    mode: command
+    command: "echo install my-tool"
+```
+
 You can also list all supported packages using the CLI:
 ```bash
 jd --list
