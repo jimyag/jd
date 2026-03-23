@@ -15,6 +15,20 @@ packages:
       amd64: amd64
       arm64: arm64
 
+  - name: tailscale
+    description: VPN mesh network
+    version_from:
+      type: github
+      repo: tailscale/tailscale
+      tag_prefix: "v"
+    url_template: "https://tailscale.com/install.sh"
+    mode: script
+    version_env: "TAILSCALE_VERSION"
+    script_env:
+      TRACK: stable
+    supported_platforms:
+      - linux
+
   - name: kubectl
     description: Kubernetes CLI
     version_from:

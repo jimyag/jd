@@ -26,9 +26,11 @@ type PackageEntry struct {
 	InstallDir         string            `yaml:"install_dir"`         // install whole directory here instead of single binary (supports ~ and templates)
 	Symlink            string            `yaml:"symlink"`             // create/update this symlink pointing to install_dir after install (supports ~)
 	VersionPrefix      string            `yaml:"version_prefix"`      // prepended to user-supplied version if not already present (e.g. "go" for Go)
+	ScriptEnv          map[string]string `yaml:"script_env"`          // default env vars passed to the install script (mode: script only)
+	VersionEnv         string            `yaml:"version_env"`         // env var name used to pass version to the script (e.g. "TAILSCALE_VERSION")
 	SupportedPlatforms []string          `yaml:"supported_platforms"` // "os/arch" pairs; empty means all supported
 	OSMap              map[string]string `yaml:"os_map"`
-	ArchMap             map[string]string `yaml:"arch_map"`
+	ArchMap            map[string]string `yaml:"arch_map"`
 }
 
 // SupportsPlatform returns true if the package supports the given GOOS/GOARCH.

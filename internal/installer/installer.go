@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -31,6 +33,23 @@ func BinDir() (string, error) {
 // Binaries go to ~/.local/bin; packages with install_dir get the whole directory installed there.
 // If version is empty, the latest version is resolved automatically.
 func Install(ctx context.Context, entry *registry.PackageEntry, version string) error {
+	goos := runtime.GOOS
+	goarch := runtime.GOARCH
+
+	if !entry.SupportsPlatform(goos, goarch) {
+		return fmt.Errorf("%s does not support %s/%s", entry.Name, goos, goarch)
+	}
+
+	// Script mode: skip automatic version resolution; version is optional and
+	// passed to the script via version_env if specified.
+	if entry.Mode == "script" {
+		url, err := entry.RenderURL(version, goos, goarch)
+		if err != nil {
+			return fmt.Errorf("render URL: %w", err)
+		}
+		return installScript(ctx, url, entry, version)
+	}
+
 	if version == "" {
 		v, err := resolveLatest(entry)
 		if err != nil {
@@ -39,13 +58,6 @@ func Install(ctx context.Context, entry *registry.PackageEntry, version string) 
 		version = v
 	} else if entry.VersionPrefix != "" && !strings.HasPrefix(version, entry.VersionPrefix) {
 		version = entry.VersionPrefix + version
-	}
-
-	goos := runtime.GOOS
-	goarch := runtime.GOARCH
-
-	if !entry.SupportsPlatform(goos, goarch) {
-		return fmt.Errorf("%s does not support %s/%s", entry.Name, goos, goarch)
 	}
 
 	fmt.Printf("  resolving version %s... ok\n", version)
@@ -303,6 +315,71 @@ func copyFile(src, dst string, mode fs.FileMode) error {
 
 	_, err = io.Copy(out, in)
 	return err
+}
+
+// installScript downloads the script at url and executes it with sh,
+// injecting script_env vars and version_env if a version was specified.
+func installScript(ctx context.Context, url string, entry *registry.PackageEntry, version string) error {
+	fmt.Printf("  fetching install script: %s\n", url)
+
+	resp, err := downloadScript(ctx, url)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(resp)
+
+	// Build env: inherit current environment, then overlay script_env, then version.
+	env := os.Environ()
+	for k, v := range entry.ScriptEnv {
+		env = append(env, k+"="+v)
+	}
+	if entry.VersionEnv != "" && version != "" {
+		env = append(env, entry.VersionEnv+"="+version)
+		fmt.Printf("  version: %s=%s\n", entry.VersionEnv, version)
+	}
+
+	fmt.Printf("  executing script...\n")
+
+	cmd := exec.CommandContext(ctx, "sh", resp)
+	cmd.Env = env
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("install script failed: %w", err)
+	}
+	fmt.Printf("  done. %s\n", entry.Name)
+	return nil
+}
+
+func downloadScript(ctx context.Context, url string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return "", fmt.Errorf("build request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("fetch script: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("fetch script: HTTP %d", resp.StatusCode)
+	}
+
+	f, err := os.CreateTemp("", "jd-script-*.sh")
+	if err != nil {
+		return "", fmt.Errorf("create temp script: %w", err)
+	}
+	if _, err := io.Copy(f, resp.Body); err != nil {
+		f.Close()
+		os.Remove(f.Name())
+		return "", fmt.Errorf("write script: %w", err)
+	}
+	f.Close()
+	return f.Name(), nil
 }
 
 func warnIfNotInPATH(binDir string) {
