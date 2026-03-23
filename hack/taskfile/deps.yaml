@@ -1,0 +1,18 @@
+version: "3"
+
+output: "prefixed"
+
+vars:
+  TOOLS:
+    - github.com/go-task/task/v3/cmd/task@latest
+    - mvdan.cc/gofumpt@latest
+    - honnef.co/go/tools/cmd/staticcheck@latest
+
+tasks:
+  deps:
+    desc: 下载并安装依赖工具
+    cmds:
+      - go mod download
+      - for: { var: TOOLS, as: TOOL }
+        cmd: go install {{.TOOL}}
+        parallel: true

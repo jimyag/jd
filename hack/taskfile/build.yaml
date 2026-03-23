@@ -1,0 +1,31 @@
+version: "3"
+
+output: "prefixed"
+
+tasks:
+  build:
+    desc: "编译 jd，可指定架构 (GO_OS=linux GO_ARCH=arm64 task build)"
+    deps:
+      - go-mod-tidy
+    vars:
+      GO_OS: '{{.GO_OS | default OS}}'
+      GO_ARCH: '{{.GO_ARCH | default ARCH}}'
+      OUT_DIR: '{{.GO_BIN}}/{{.GO_OS}}_{{.GO_ARCH}}'
+    cmds:
+      - rm -rf {{.OUT_DIR}}
+      - mkdir -p {{.OUT_DIR}}
+      - |
+        CGO_ENABLED=0 GOOS={{.GO_OS}} GOARCH={{.GO_ARCH}} \
+        GOMODCACHE={{.GO_PATH}}/pkg/mod \
+        go build -trimpath -v -ldflags "{{.LDFLAGS}}" -o {{.OUT_DIR}}/jd .
+      - |
+        if [ "{{.GO_OS}}" == "{{OS}}" ] && [ "{{.GO_ARCH}}" == "{{ARCH}}" ]; then
+          cp {{.OUT_DIR}}/jd {{.GO_BIN}}/jd
+        fi
+
+  go-mod-tidy:
+    desc: go mod tidy
+    internal: true
+    run: once
+    cmds:
+      - go mod tidy

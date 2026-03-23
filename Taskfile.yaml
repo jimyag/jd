@@ -1,0 +1,36 @@
+version: "3"
+
+vars:
+  GIT_TAG:
+    sh: git describe --tags --always --dirty="-dev"
+  GO_BIN: "{{.ROOT_DIR}}/bin"
+  GO_PATH:
+    sh: "go env GOPATH | awk -F: '{print $1}'"
+  BUILD_TIME:
+    sh: TZ='Asia/Shanghai' date "+%Y-%m-%d-%H-%M-%S"
+
+  LDFLAGS: "-s -w \
+    -X 'github.com/jimmicro/version.GitTag={{.GIT_TAG}}' \
+    -X 'github.com/jimmicro/version.BuildTime={{.BUILD_TIME}}' \
+    -X 'github.com/jimmicro/version.EnableCmd=false'"
+
+includes:
+  build:
+    taskfile: ./hack/taskfile/build.yaml
+    flatten: true
+  lint:
+    taskfile: ./hack/taskfile/lint.yaml
+    flatten: true
+  deps:
+    taskfile: ./hack/taskfile/deps.yaml
+    flatten: true
+  test:
+    taskfile: ./hack/taskfile/test.yaml
+    flatten: true
+
+tasks:
+  default:
+    desc: 列出所有任务
+    cmds:
+      - task --list-all
+    silent: true

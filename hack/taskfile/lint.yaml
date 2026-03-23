@@ -1,0 +1,20 @@
+version: "3"
+
+output: "prefixed"
+
+vars:
+  LINT_CMDS:
+    - find . -name "*.go" -print0 | xargs -0 gofumpt -w
+    - find . -name "*.go" -print0 | xargs -0 gofmt -w
+    - go vet ./...
+    - staticcheck ./...
+
+tasks:
+  lint:
+    desc: 执行所有代码检查
+    cmds:
+      - go mod tidy
+      - for: { var: LINT_CMDS, as: CMD }
+        cmd: "{{.CMD}}"
+        parallel: true
+    silent: true

@@ -1,0 +1,16 @@
+version: "3"
+
+output: "prefixed"
+
+tasks:
+  test:
+    desc: "运行单元测试 (task test -- ./internal/registry/... 或 task test -- -run TestXxx)"
+    vars:
+      COVERAGE_OUT: "{{.ROOT_DIR}}/coverage.out"
+      TEST_PKGS: '{{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}./...{{end}}'
+    cmds:
+      - |
+        GORACE=atexit_sleep_ms=0 go test \
+          -trimpath -failfast -race -cover -ldflags="{{.LDFLAGS}}" \
+          {{.TEST_PKGS}} \
+          -coverprofile="{{.COVERAGE_OUT}}"
