@@ -5,7 +5,7 @@ packages:
       type: github
       repo: jimyag/jd
       tag_prefix: "v"
-    url_template: "https://github.com/jimyag/jd/releases/download/{{.Version}}/jd_{{.Version}}_{{.OS}}_{{.Arch}}"
+    url_template: "https://github.com/jimyag/jd/releases/download/{{.Version}}/jd_{{.VersionNoV}}_{{.OS}}_{{.Arch}}"
     mode: file
     os_map:
       darwin: darwin
