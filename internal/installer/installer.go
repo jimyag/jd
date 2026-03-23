@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -26,11 +27,12 @@ func BinDir() (string, error) {
 	return filepath.Join(home, defaultBinDir), nil
 }
 
-// Install downloads and installs a package to ~/.local/bin.
-// If version is empty, the latest version is used.
+// Install downloads and installs a package.
+// Binaries go to ~/.local/bin; packages with install_dir get the whole directory installed there.
+// If version is empty, the latest version is resolved automatically.
 func Install(ctx context.Context, entry *registry.PackageEntry, version string) error {
 	if version == "" {
-		v, err := versioner.LatestVersion(entry.VersionFrom.Repo)
+		v, err := resolveLatest(entry)
 		if err != nil {
 			return err
 		}
@@ -79,7 +81,14 @@ func Install(ctx context.Context, entry *registry.PackageEntry, version string) 
 		return fmt.Errorf("download %s: %w", url, err)
 	}
 
-	// Locate the binary inside the downloaded content.
+	if entry.InstallDir != "" {
+		return installDir(dst, entry, version, goos, goarch)
+	}
+	return installBinary(dst, entry, version, goos, goarch)
+}
+
+// installBinary locates the binary inside dst and copies it to ~/.local/bin.
+func installBinary(dst string, entry *registry.PackageEntry, version, goos, goarch string) error {
 	binaryPath, err := locateBinary(dst, entry, version, goos, goarch)
 	if err != nil {
 		return err
@@ -106,8 +115,64 @@ func Install(ctx context.Context, entry *registry.PackageEntry, version string) 
 	return nil
 }
 
+// installDir moves the inner_path directory from dst to entry.InstallDir.
+func installDir(dst string, entry *registry.PackageEntry, version, goos, goarch string) error {
+	innerPath, err := entry.RenderInnerPath(version, goos, goarch)
+	if err != nil {
+		return err
+	}
+	srcDir := filepath.Join(dst, innerPath)
+	if _, err := os.Stat(srcDir); err != nil {
+		return fmt.Errorf("inner_path %q not found in archive (expected at %s)", entry.InnerPath, srcDir)
+	}
+
+	installDir, err := expandHome(entry.InstallDir)
+	if err != nil {
+		return err
+	}
+
+	// Remove existing installation.
+	if err := os.RemoveAll(installDir); err != nil {
+		return fmt.Errorf("remove existing %s: %w", installDir, err)
+	}
+	if err := os.MkdirAll(filepath.Dir(installDir), 0o755); err != nil {
+		return fmt.Errorf("create parent dir: %w", err)
+	}
+
+	// Try rename first (fast, same filesystem); fall back to recursive copy.
+	if err := os.Rename(srcDir, installDir); err != nil {
+		if err := copyDirAll(srcDir, installDir); err != nil {
+			return fmt.Errorf("install directory: %w", err)
+		}
+	}
+
+	fmt.Printf("  installed to %s\n", installDir)
+	fmt.Printf("  done. %s %s\n", entry.Name, version)
+
+	warnIfNotInPATH(filepath.Join(installDir, "bin"))
+	return nil
+}
+
+func resolveLatest(entry *registry.PackageEntry) (string, error) {
+	switch entry.VersionFrom.Type {
+	case "godev":
+		return versioner.GoDevLatestVersion()
+	default:
+		return versioner.LatestVersion(entry.VersionFrom.Repo)
+	}
+}
+
+// ListVersions returns available versions for the given package.
+func ListVersions(entry *registry.PackageEntry) ([]string, error) {
+	switch entry.VersionFrom.Type {
+	case "godev":
+		return versioner.GoDevListVersions()
+	default:
+		return versioner.ListVersions(entry.VersionFrom.Repo)
+	}
+}
+
 func locateBinary(dst string, entry *registry.PackageEntry, version, goos, goarch string) (string, error) {
-	// Check if dst is already a file (direct binary download).
 	info, err := os.Stat(dst)
 	if err != nil {
 		return "", fmt.Errorf("stat download: %w", err)
@@ -117,7 +182,6 @@ func locateBinary(dst string, entry *registry.PackageEntry, version, goos, goarc
 		return dst, nil
 	}
 
-	// Archive was extracted into dst directory.
 	if entry.InnerPath != "" {
 		innerPath, err := entry.RenderInnerPath(version, goos, goarch)
 		if err != nil {
@@ -130,22 +194,19 @@ func locateBinary(dst string, entry *registry.PackageEntry, version, goos, goarc
 		return p, nil
 	}
 
-	// No inner_path: look for a file matching the binary name.
 	target := filepath.Join(dst, entry.GetBinaryName())
 	if _, err := os.Stat(target); err == nil {
 		return target, nil
 	}
 
-	// Walk and find any executable file.
 	var found string
 	err = filepath.Walk(dst, func(path string, fi os.FileInfo, err error) error {
 		if err != nil || fi.IsDir() {
 			return err
 		}
-		name := strings.ToLower(fi.Name())
-		if name == strings.ToLower(entry.GetBinaryName()) {
+		if strings.ToLower(fi.Name()) == strings.ToLower(entry.GetBinaryName()) {
 			found = path
-			return io.EOF // stop walking
+			return io.EOF
 		}
 		return nil
 	})
@@ -164,7 +225,6 @@ func ensureBinDir(dir string) error {
 }
 
 func moveBinary(src, dst string) error {
-	// Copy then delete, works across filesystems.
 	in, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf("open source binary: %w", err)
@@ -181,6 +241,58 @@ func moveBinary(src, dst string) error {
 		return fmt.Errorf("copy binary: %w", err)
 	}
 	return nil
+}
+
+func expandHome(path string) (string, error) {
+	if !strings.HasPrefix(path, "~/") {
+		return path, nil
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("resolve home dir: %w", err)
+	}
+	return filepath.Join(home, path[2:]), nil
+}
+
+// copyDirAll recursively copies src directory to dst.
+func copyDirAll(src, dst string) error {
+	return filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(dst, rel)
+
+		if d.IsDir() {
+			return os.MkdirAll(target, 0o755)
+		}
+
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		return copyFile(path, target, info.Mode())
+	})
+}
+
+func copyFile(src, dst string, mode fs.FileMode) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, in)
+	return err
 }
 
 func warnIfNotInPATH(binDir string) {

@@ -23,9 +23,10 @@ type PackageEntry struct {
 	URLTemplate        string            `yaml:"url_template"`
 	Mode               string            `yaml:"mode"`                // "dir" (default) or "file"
 	InnerPath          string            `yaml:"inner_path"`          // path inside archive, supports template
+	InstallDir         string            `yaml:"install_dir"`         // install whole directory here instead of single binary (supports ~)
 	SupportedPlatforms []string          `yaml:"supported_platforms"` // "os/arch" pairs; empty means all supported
 	OSMap              map[string]string `yaml:"os_map"`
-	ArchMap            map[string]string `yaml:"arch_map"`
+	ArchMap             map[string]string `yaml:"arch_map"`
 }
 
 // SupportsPlatform returns true if the package supports the given GOOS/GOARCH.
