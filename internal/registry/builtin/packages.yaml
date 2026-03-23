@@ -119,7 +119,7 @@ packages:
       repo: OpenCloudOS/nettrace
       tag_prefix: "v"
     url_template: "https://github.com/OpenCloudOS/nettrace/releases/download/{{.Version}}/nettrace-{{.VersionNoV}}-1.tl3.{{.Arch}}.tar.bz2"
-    inner_path: "usr/bin/nettrace"
+    inner_path: "nettrace-{{.VersionNoV}}-1.tl3.{{.Arch}}/nettrace"
     supported_platforms:
       - linux
     arch_map:
