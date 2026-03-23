@@ -21,7 +21,8 @@ type PackageEntry struct {
 	BinaryName         string            `yaml:"binary_name"` // defaults to Name
 	VersionFrom        VersionSource     `yaml:"version_from"`
 	URLTemplate        string            `yaml:"url_template"`
-	Mode               string            `yaml:"mode"`                // "dir" (default) or "file"
+	Mode               string            `yaml:"mode"`                // "dir" (default), "file", or "command"
+	Command            string            `yaml:"command"`             // shell command for mode: command (supports templates)
 	InnerPath          string            `yaml:"inner_path"`          // path inside archive, supports template
 	InstallDir         string            `yaml:"install_dir"`         // install whole directory here instead of single binary (supports ~ and templates)
 	Symlink            string            `yaml:"symlink"`             // create/update this symlink pointing to install_dir after install (supports ~)
@@ -100,6 +101,11 @@ func (e *PackageEntry) RenderURL(version, os, arch string) (string, error) {
 // RenderInnerPath renders the InnerPath template.
 func (e *PackageEntry) RenderInnerPath(version, os, arch string) (string, error) {
 	return e.render(e.InnerPath, version, os, arch)
+}
+
+// RenderCommand renders the Command template.
+func (e *PackageEntry) RenderCommand(version, os, arch string) (string, error) {
+	return e.render(e.Command, version, os, arch)
 }
 
 func (e *PackageEntry) render(tmpl, version, os, arch string) (string, error) {

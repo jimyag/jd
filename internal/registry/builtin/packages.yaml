@@ -17,15 +17,8 @@ packages:
 
   - name: tailscale
     description: VPN mesh network
-    version_from:
-      type: github
-      repo: tailscale/tailscale
-      tag_prefix: "v"
-    url_template: "https://tailscale.com/install.sh"
-    mode: script
-    env:
-      TRACK: stable
-      TAILSCALE_VERSION: "{{.Version}}"
+    command: "curl -fsSL https://tailscale.com/install.sh | sh"
+    mode: command
     supported_platforms:
       - linux
 
@@ -150,12 +143,8 @@ packages:
 
   - name: task
     description: Task runner / build tool (Taskfile)
-    version_from:
-      type: github
-      repo: go-task/task
-      tag_prefix: "v"
-    url_template: "https://taskfile.dev/install.sh"
-    mode: script
+    command: "sh -c \"$(curl -fsSL https://taskfile.dev/install.sh)\""
+    mode: command
     supported_platforms:
       - linux
       - darwin
@@ -191,12 +180,40 @@ packages:
 
   - name: golangci-lint
     description: Go linters aggregator
-    version_from:
-      type: github
-      repo: golangci/golangci-lint
-      tag_prefix: "v"
-    url_template: "https://golangci-lint.run/install.sh"
-    mode: script
+    command: "curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin"
+    mode: command
+    supported_platforms:
+      - linux
+      - darwin
+
+  - name: claude-code
+    description: Claude Code CLI by Anthropic
+    command: "curl -fsSL https://claude.ai/install.sh | sh"
+    mode: command
+    supported_platforms:
+      - linux
+      - darwin
+
+  - name: codex
+    description: OpenAI Codex CLI
+    command: "npm install -g @openai/codex"
+    mode: command
+    supported_platforms:
+      - linux
+      - darwin
+
+  - name: gemini-cli
+    description: Google Gemini CLI
+    command: "npm install -g @google/gemini-cli"
+    mode: command
+    supported_platforms:
+      - linux
+      - darwin
+
+  - name: cursor
+    description: Cursor AI code editor
+    command: "curl -fsSL https://cursor.com/install | sh"
+    mode: command
     supported_platforms:
       - linux
       - darwin

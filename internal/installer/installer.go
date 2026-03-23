@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -40,14 +39,10 @@ func Install(ctx context.Context, entry *registry.PackageEntry, version string) 
 		return fmt.Errorf("%s does not support %s/%s", entry.Name, goos, goarch)
 	}
 
-	// Script mode: skip automatic version resolution; version is optional and
-	// passed to the script via version_env if specified.
-	if entry.Mode == "script" {
-		url, err := entry.RenderURL(version, goos, goarch)
-		if err != nil {
-			return fmt.Errorf("render URL: %w", err)
-		}
-		return installScript(ctx, url, entry, version)
+	// Command mode: render the command template and execute via sh -c.
+	// Version resolution is skipped; version may be passed via env if needed.
+	if entry.Mode == "command" {
+		return runCommand(ctx, entry, version)
 	}
 
 	if version == "" {
@@ -317,19 +312,19 @@ func copyFile(src, dst string, mode fs.FileMode) error {
 	return err
 }
 
-// installScript downloads the script at url and executes it with sh,
-// injecting script_env vars and version_env if a version was specified.
-func installScript(ctx context.Context, url string, entry *registry.PackageEntry, version string) error {
-	fmt.Printf("  fetching install script: %s\n", url)
+// runCommand renders the entry's Command template and executes it via sh -c.
+func runCommand(ctx context.Context, entry *registry.PackageEntry, version string) error {
+	goos := runtime.GOOS
+	goarch := runtime.GOARCH
 
-	resp, err := downloadScript(ctx, url)
+	cmd, err := entry.RenderCommand(version, goos, goarch)
 	if err != nil {
-		return err
+		return fmt.Errorf("render command: %w", err)
 	}
-	defer os.Remove(resp)
 
-	// Build env: inherit current environment, then overlay rendered env vars.
-	extra, err := entry.RenderEnv(version, runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("  running: %s\n", cmd)
+
+	extra, err := entry.RenderEnv(version, goos, goarch)
 	if err != nil {
 		return err
 	}
@@ -338,48 +333,17 @@ func installScript(ctx context.Context, url string, entry *registry.PackageEntry
 		fmt.Printf("  env: %s\n", kv)
 	}
 
-	fmt.Printf("  executing script...\n")
+	c := exec.CommandContext(ctx, "sh", "-c", cmd)
+	c.Env = env
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	c.Stdin = os.Stdin
 
-	cmd := exec.CommandContext(ctx, "sh", resp)
-	cmd.Env = env
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("install script failed: %w", err)
+	if err := c.Run(); err != nil {
+		return fmt.Errorf("command failed: %w", err)
 	}
 	fmt.Printf("  done. %s\n", entry.Name)
 	return nil
-}
-
-func downloadScript(ctx context.Context, url string) (string, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return "", fmt.Errorf("build request: %w", err)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("fetch script: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("fetch script: HTTP %d", resp.StatusCode)
-	}
-
-	f, err := os.CreateTemp("", "jd-script-*.sh")
-	if err != nil {
-		return "", fmt.Errorf("create temp script: %w", err)
-	}
-	if _, err := io.Copy(f, resp.Body); err != nil {
-		f.Close()
-		os.Remove(f.Name())
-		return "", fmt.Errorf("write script: %w", err)
-	}
-	f.Close()
-	return f.Name(), nil
 }
 
 func warnIfNotInPATH(binDir string) {
