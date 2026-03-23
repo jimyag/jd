@@ -161,9 +161,9 @@ func installDir(dst string, entry *registry.PackageEntry, version, goos, goarch 
 		if err != nil {
 			return err
 		}
-		// Remove existing file or symlink.
-		if err := os.Remove(link); err != nil && !os.IsNotExist(err) {
-			return fmt.Errorf("remove existing symlink %s: %w", link, err)
+		// Remove existing symlink or directory.
+		if err := os.RemoveAll(link); err != nil {
+			return fmt.Errorf("remove existing %s: %w", link, err)
 		}
 		if err := os.Symlink(installDir, link); err != nil {
 			return fmt.Errorf("create symlink %s -> %s: %w", link, installDir, err)
