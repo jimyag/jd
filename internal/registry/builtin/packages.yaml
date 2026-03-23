@@ -6,7 +6,7 @@ packages:
       repo: kubernetes/kubernetes
       tag_prefix: "v"
     url_template: "https://dl.k8s.io/release/{{.Version}}/bin/{{.OS}}/{{.Arch}}/kubectl"
-    is_archive: false
+    mode: file
     os_map:
       darwin: darwin
       linux: linux
@@ -21,7 +21,7 @@ packages:
       repo: nxtrace/NTrace-core
       tag_prefix: "v"
     url_template: "https://github.com/nxtrace/NTrace-core/releases/download/{{.Version}}/nexttrace_{{.OS}}_{{.Arch}}"
-    is_archive: false
+    mode: file
     os_map:
       darwin: darwin
       linux: linux
@@ -36,10 +36,68 @@ packages:
       repo: FiloSottile/age
       tag_prefix: "v"
     url_template: "https://github.com/FiloSottile/age/releases/download/{{.Version}}/age-{{.Version}}-{{.OS}}-{{.Arch}}.tar.gz"
-    is_archive: true
     inner_path: "age/age"
     os_map:
       darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: virtctl
+    description: KubeVirt VM management CLI
+    version_from:
+      type: github
+      repo: kubevirt/kubevirt
+      tag_prefix: "v"
+    url_template: "https://github.com/kubevirt/kubevirt/releases/download/{{.Version}}/virtctl-{{.Version}}-{{.OS}}-{{.Arch}}"
+    mode: file
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: helm
+    description: Kubernetes package manager
+    version_from:
+      type: github
+      repo: helm/helm
+      tag_prefix: "v"
+    url_template: "https://get.helm.sh/helm-{{.Version}}-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "{{.OS}}-{{.Arch}}/helm"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: nettrace
+    description: Linux network tracing tool (OpenCloudOS)
+    version_from:
+      type: github
+      repo: OpenCloudOS/nettrace
+      tag_prefix: "v"
+    url_template: "https://github.com/OpenCloudOS/nettrace/releases/download/{{.Version}}/nettrace-{{.VersionNoV}}-1.tl3.{{.Arch}}.tar.bz2"
+    inner_path: "usr/bin/nettrace"
+    supported_platforms:
+      - linux
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: gh
+    description: GitHub CLI
+    version_from:
+      type: github
+      repo: cli/cli
+      tag_prefix: "v"
+    url_template: "https://github.com/cli/cli/releases/download/{{.Version}}/gh_{{.VersionNoV}}_{{.OS}}_{{.Arch}}{{if eq .OS \"macOS\"}}.zip{{else}}.tar.gz{{end}}"
+    inner_path: "gh_{{.VersionNoV}}_{{.OS}}_{{.Arch}}/bin/gh"
+    os_map:
+      darwin: macOS
       linux: linux
     arch_map:
       amd64: amd64
