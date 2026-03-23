@@ -24,7 +24,10 @@ jd <package> --list
 jd <package> --list-all
 
 # List all supported packages
-jd list
+jd --list
+
+# Generate shell completion (bash, zsh, fish, powershell)
+jd --complete zsh > ~/.zshrc # or as needed
 ```
 
 ## Examples
@@ -32,6 +35,7 @@ jd list
 ```bash
 jd go                  # install latest Go toolchain
 jd go@1.24.0           # install a specific Go version
+jd --list              # list all supported packages
 jd kubectl --list      # show latest 10 kubectl versions
 jd helm
 jd gh
@@ -39,39 +43,21 @@ jd gh
 
 ## Supported Packages
 
-| Name | Description |
-|------|-------------|
-| age | Simple file encryption tool |
-| chezmoi | Dotfiles manager |
-| claude-code | Claude Code CLI by Anthropic |
-| codex | OpenAI Codex CLI |
-| cursor | Cursor AI code editor |
-| dive | Docker image layer explorer |
-| frpc | frp client — fast reverse proxy |
-| frps | frp server — fast reverse proxy |
-| gemini-cli | Google Gemini CLI |
-| gh | GitHub CLI |
-| go | Go programming language toolchain |
-| gohttpserver | HTTP file server with web UI |
-| golangci-lint | Go linters aggregator |
-| helm | Kubernetes package manager |
-| hugo | Static site generator (extended edition) |
-| kubectl | Kubernetes CLI |
-| mihomo | Rule-based proxy tunnel (Clash Meta) |
-| nettrace | Linux network tracing tool (OpenCloudOS) |
-| nexttrace | Visual traceroute tool |
-| tailscale | VPN mesh network |
-| task | Task runner / build tool (Taskfile) |
-| virtctl | KubeVirt VM management CLI |
+The list of supported packages is maintained in the [internal/registry/builtin/packages.yaml](internal/registry/builtin/packages.yaml) file. 
+
+You can also list all supported packages using the CLI:
+```bash
+jd --list
+```
 
 ## Install Modes
 
-- default — downloads a tar.gz/zip archive and extracts the binary to `~/.local/bin`
-- `file` — downloads a single binary directly
-- `command` — runs a shell command (e.g. curl pipe or npm install)
+- `default` — downloads a tar.gz/zip archive and extracts the binary to `~/.local/bin`
+- `file` — downloads a single binary directly (useful for Go binaries distributed as single files)
+- `command` — runs a shell command (e.g. `npm install` or custom curl script)
 
 Special cases:
-- `go` installs to `~/.go/<version>` and symlinks `~/.go/goroot`
+- `go` installs to `~/.go/<version>` and symlinks `~/.go/goroot`.
 
 ## Environment Variables
 
@@ -79,10 +65,18 @@ Special cases:
 |----------|-------------|
 | `GITHUB_TOKEN` | GitHub personal access token to avoid rate limiting when resolving versions |
 
+## Uninstall
+
+Since `jd` installs binaries directly to `~/.local/bin`, you can simply remove the binary file:
+```bash
+rm ~/.local/bin/<package>
+```
+
 ## Adding a Package
 
-Edit `internal/registry/builtin/packages.yaml`. Each entry supports:
+Edit `internal/registry/builtin/packages.yaml`.
 
+### Archive (Default)
 ```yaml
 - name: mytool
   description: My tool description
@@ -98,6 +92,20 @@ Edit `internal/registry/builtin/packages.yaml`. Each entry supports:
   arch_map:
     amd64: amd64
     arm64: arm64
+```
+
+### Direct File
+```yaml
+- name: single-binary
+  mode: file
+  url_template: "https://github.com/owner/repo/releases/download/{{.Version}}/tool-{{.OS}}-{{.Arch}}"
+```
+
+### Command
+```yaml
+- name: npm-tool
+  mode: command
+  command: "npm install -g some-package"
 ```
 
 Template variables: `{{.Version}}`, `{{.VersionNoV}}` (without leading `v`), `{{.OS}}`, `{{.Arch}}`, `{{.Name}}`
