@@ -1,0 +1,46 @@
+packages:
+  - name: kubectl
+    description: Kubernetes CLI
+    version_from:
+      type: github
+      repo: kubernetes/kubernetes
+      tag_prefix: "v"
+    url_template: "https://dl.k8s.io/release/{{.Version}}/bin/{{.OS}}/{{.Arch}}/kubectl"
+    is_archive: false
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: nexttrace
+    description: Visual traceroute tool
+    version_from:
+      type: github
+      repo: nxtrace/NTrace-core
+      tag_prefix: "v"
+    url_template: "https://github.com/nxtrace/NTrace-core/releases/download/{{.Version}}/nexttrace_{{.OS}}_{{.Arch}}"
+    is_archive: false
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: age
+    description: Simple file encryption tool
+    version_from:
+      type: github
+      repo: FiloSottile/age
+      tag_prefix: "v"
+    url_template: "https://github.com/FiloSottile/age/releases/download/{{.Version}}/age-{{.Version}}-{{.OS}}-{{.Arch}}.tar.gz"
+    is_archive: true
+    inner_path: "age/age"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
