@@ -23,7 +23,8 @@ type PackageEntry struct {
 	URLTemplate        string            `yaml:"url_template"`
 	Mode               string            `yaml:"mode"`                // "dir" (default) or "file"
 	InnerPath          string            `yaml:"inner_path"`          // path inside archive, supports template
-	InstallDir         string            `yaml:"install_dir"`         // install whole directory here instead of single binary (supports ~)
+	InstallDir         string            `yaml:"install_dir"`         // install whole directory here instead of single binary (supports ~ and templates)
+	Symlink            string            `yaml:"symlink"`             // create/update this symlink pointing to install_dir after install (supports ~)
 	VersionPrefix      string            `yaml:"version_prefix"`      // prepended to user-supplied version if not already present (e.g. "go" for Go)
 	SupportedPlatforms []string          `yaml:"supported_platforms"` // "os/arch" pairs; empty means all supported
 	OSMap              map[string]string `yaml:"os_map"`
@@ -67,6 +68,11 @@ func (e *PackageEntry) GetBinaryName() string {
 		return e.BinaryName
 	}
 	return e.Name
+}
+
+// RenderInstallDir renders the InstallDir template.
+func (e *PackageEntry) RenderInstallDir(version, os, arch string) (string, error) {
+	return e.render(e.InstallDir, version, os, arch)
 }
 
 // RenderURL renders the URL template with the given version, OS, and arch.

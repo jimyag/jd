@@ -117,7 +117,8 @@ func installBinary(dst string, entry *registry.PackageEntry, version, goos, goar
 	return nil
 }
 
-// installDir moves the inner_path directory from dst to entry.InstallDir.
+// installDir moves the inner_path directory from dst to entry.InstallDir,
+// then creates/updates entry.Symlink pointing to the versioned install dir.
 func installDir(dst string, entry *registry.PackageEntry, version, goos, goarch string) error {
 	innerPath, err := entry.RenderInnerPath(version, goos, goarch)
 	if err != nil {
@@ -128,12 +129,16 @@ func installDir(dst string, entry *registry.PackageEntry, version, goos, goarch 
 		return fmt.Errorf("inner_path %q not found in archive (expected at %s)", entry.InnerPath, srcDir)
 	}
 
-	installDir, err := expandHome(entry.InstallDir)
+	rawInstallDir, err := entry.RenderInstallDir(version, goos, goarch)
+	if err != nil {
+		return err
+	}
+	installDir, err := expandHome(rawInstallDir)
 	if err != nil {
 		return err
 	}
 
-	// Remove existing installation.
+	// Remove existing versioned directory.
 	if err := os.RemoveAll(installDir); err != nil {
 		return fmt.Errorf("remove existing %s: %w", installDir, err)
 	}
@@ -149,9 +154,27 @@ func installDir(dst string, entry *registry.PackageEntry, version, goos, goarch 
 	}
 
 	fmt.Printf("  installed to %s\n", installDir)
-	fmt.Printf("  done. %s %s\n", entry.Name, version)
 
-	warnIfNotInPATH(filepath.Join(installDir, "bin"))
+	// Create/update symlink if configured.
+	if entry.Symlink != "" {
+		link, err := expandHome(entry.Symlink)
+		if err != nil {
+			return err
+		}
+		// Remove existing file or symlink.
+		if err := os.Remove(link); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("remove existing symlink %s: %w", link, err)
+		}
+		if err := os.Symlink(installDir, link); err != nil {
+			return fmt.Errorf("create symlink %s -> %s: %w", link, installDir, err)
+		}
+		fmt.Printf("  symlinked %s -> %s\n", link, installDir)
+		warnIfNotInPATH(filepath.Join(link, "bin"))
+	} else {
+		warnIfNotInPATH(filepath.Join(installDir, "bin"))
+	}
+
+	fmt.Printf("  done. %s %s\n", entry.Name, version)
 	return nil
 }
 

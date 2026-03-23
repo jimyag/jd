@@ -5,7 +5,8 @@ packages:
       type: godev
     url_template: "https://go.dev/dl/{{.Version}}.{{.OS}}-{{.Arch}}.tar.gz"
     inner_path: "go"
-    install_dir: "~/.go/goroot"
+    install_dir: "~/.go/{{.Version}}"
+    symlink: "~/.go/goroot"
     version_prefix: "go"
     os_map:
       darwin: darwin
