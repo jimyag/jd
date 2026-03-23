@@ -217,3 +217,63 @@ packages:
     supported_platforms:
       - linux
       - darwin
+
+  - name: frpc
+    description: frp client — fast reverse proxy
+    version_from:
+      type: github
+      repo: fatedier/frp
+      tag_prefix: "v"
+    url_template: "https://github.com/fatedier/frp/releases/download/{{.Version}}/frp_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "frp_{{.VersionNoV}}_{{.OS}}_{{.Arch}}/frpc"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: frps
+    description: frp server — fast reverse proxy
+    version_from:
+      type: github
+      repo: fatedier/frp
+      tag_prefix: "v"
+    url_template: "https://github.com/fatedier/frp/releases/download/{{.Version}}/frp_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "frp_{{.VersionNoV}}_{{.OS}}_{{.Arch}}/frps"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: mihomo
+    description: Rule-based proxy tunnel (Clash Meta)
+    version_from:
+      type: github
+      repo: MetaCubeX/mihomo
+      tag_prefix: "v"
+    url_template: "https://github.com/MetaCubeX/mihomo/releases/download/{{.Version}}/mihomo-{{.OS}}-{{.Arch}}-{{.Version}}.gz"
+    mode: file
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
+  - name: gohttpserver
+    description: HTTP file server with web UI
+    version_from:
+      type: github
+      repo: codeskyblue/gohttpserver
+      tag_prefix: ""
+    url_template: "https://github.com/codeskyblue/gohttpserver/releases/download/{{.VersionNoV}}/gohttpserver_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "gohttpserver"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
