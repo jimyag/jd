@@ -43,5 +43,24 @@ func TestList(t *testing.T) {
 	}
 }
 
+func TestBuiltinPackagesHaveDocURLs(t *testing.T) {
+	r, err := LoadBuiltin()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, pkg := range r.List() {
+		methods := pkg.SortedMethods()
+		if len(methods) == 0 {
+			t.Fatalf("package %s has no install methods", pkg.Name)
+		}
+		for _, method := range methods {
+			if method.DocURL == "" {
+				t.Fatalf("package %s method %s is missing doc_url", pkg.Name, method.Type)
+			}
+		}
+	}
+}
+
 // silence unused import warning until builtin is created
 var _ = builtin.BuiltinYAML

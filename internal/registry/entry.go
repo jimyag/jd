@@ -3,6 +3,8 @@ package registry
 import (
 	"bytes"
 	"fmt"
+	"slices"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -19,6 +21,8 @@ type PackageEntry struct {
 	Name               string            `yaml:"name"`
 	Description        string            `yaml:"description"`
 	BinaryName         string            `yaml:"binary_name"` // defaults to Name
+	DocURL             string            `yaml:"doc_url"`
+	Methods            []InstallMethod   `yaml:"methods"`
 	VersionFrom        VersionSource     `yaml:"version_from"`
 	URLTemplate        string            `yaml:"url_template"`
 	Mode               string            `yaml:"mode"`                // "dir" (default), "file", or "command"
@@ -28,7 +32,30 @@ type PackageEntry struct {
 	Symlink            string            `yaml:"symlink"`             // create/update this symlink pointing to install_dir after install (supports ~)
 	VersionPrefix      string            `yaml:"version_prefix"`      // prepended to user-supplied version if not already present (e.g. "go" for Go)
 	Env                map[string]string `yaml:"env"`                 // env vars injected when executing install script; values support templates (mode: script only)
+	FallbackCommands   map[string]string `yaml:"fallback_commands"`   // map of OS to fallback install command (e.g. darwin: "brew install ...")
 	SupportedPlatforms []string          `yaml:"supported_platforms"` // "os/arch" pairs; empty means all supported
+	OSMap              map[string]string `yaml:"os_map"`
+	ArchMap            map[string]string `yaml:"arch_map"`
+}
+
+type InstallMethod struct {
+	Type               string            `yaml:"type"`
+	Priority           int               `yaml:"priority"`
+	VersionFrom        VersionSource     `yaml:"version_from"`
+	URLTemplate        string            `yaml:"url_template"`
+	Mode               string            `yaml:"mode"`
+	Command            string            `yaml:"command"`
+	Package            string            `yaml:"package"`
+	DocURL             string            `yaml:"doc_url"`
+	PreCommands        []string          `yaml:"pre_commands"`
+	PostCommands       []string          `yaml:"post_commands"`
+	InnerPath          string            `yaml:"inner_path"`
+	InstallDir         string            `yaml:"install_dir"`
+	Symlink            string            `yaml:"symlink"`
+	VersionPrefix      string            `yaml:"version_prefix"`
+	Env                map[string]string `yaml:"env"`
+	UseSudo            *bool             `yaml:"use_sudo"`
+	SupportedPlatforms []string          `yaml:"supported_platforms"`
 	OSMap              map[string]string `yaml:"os_map"`
 	ArchMap            map[string]string `yaml:"arch_map"`
 }
@@ -39,10 +66,26 @@ type PackageEntry struct {
 //   - "os"       — matches all arches for that OS (e.g. "linux")
 //   - "os/arch"  — exact match (e.g. "darwin/arm64")
 func (e *PackageEntry) SupportsPlatform(goos, goarch string) bool {
-	if len(e.SupportedPlatforms) == 0 {
+	if len(e.Methods) > 0 {
+		for _, method := range e.Methods {
+			if method.SupportsPlatform(goos, goarch) {
+				return true
+			}
+		}
+		return false
+	}
+	return supportsPlatform(e.SupportedPlatforms, goos, goarch)
+}
+
+func (m InstallMethod) SupportsPlatform(goos, goarch string) bool {
+	return supportsPlatform(m.SupportedPlatforms, goos, goarch)
+}
+
+func supportsPlatform(platforms []string, goos, goarch string) bool {
+	if len(platforms) == 0 {
 		return true
 	}
-	for _, p := range e.SupportedPlatforms {
+	for _, p := range platforms {
 		if strings.Contains(p, "/") {
 			if p == goos+"/"+goarch {
 				return true
@@ -72,12 +115,37 @@ func (e *PackageEntry) GetBinaryName() string {
 	return e.Name
 }
 
+func (e *PackageEntry) SortedMethods() []InstallMethod {
+	methods := e.Methods
+	if len(methods) == 0 {
+		methods = []InstallMethod{e.legacyMethod()}
+	}
+
+	sorted := slices.Clone(methods)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return sorted[i].Priority > sorted[j].Priority
+	})
+	return sorted
+}
+
+func (e *PackageEntry) VersionSourceForMethod(methodType string) (VersionSource, bool) {
+	for _, method := range e.SortedMethods() {
+		if methodType != "" && method.Type != methodType {
+			continue
+		}
+		if method.VersionFrom.Type != "" {
+			return method.VersionFrom, true
+		}
+	}
+	return VersionSource{}, false
+}
+
 // RenderEnv renders each env value as a template and returns "KEY=VALUE" pairs,
 // skipping entries whose rendered value is empty.
 func (e *PackageEntry) RenderEnv(version, os, arch string) ([]string, error) {
 	result := make([]string, 0, len(e.Env))
 	for k, v := range e.Env {
-		rendered, err := e.render(v, version, os, arch)
+		rendered, err := renderTemplate(v, version, os, arch, e.Name, e.OSMap, e.ArchMap)
 		if err != nil {
 			return nil, fmt.Errorf("render env %s: %w", k, err)
 		}
@@ -90,27 +158,57 @@ func (e *PackageEntry) RenderEnv(version, os, arch string) ([]string, error) {
 
 // RenderInstallDir renders the InstallDir template.
 func (e *PackageEntry) RenderInstallDir(version, os, arch string) (string, error) {
-	return e.render(e.InstallDir, version, os, arch)
+	return renderTemplate(e.InstallDir, version, os, arch, e.Name, e.OSMap, e.ArchMap)
 }
 
 // RenderURL renders the URL template with the given version, OS, and arch.
 func (e *PackageEntry) RenderURL(version, os, arch string) (string, error) {
-	return e.render(e.URLTemplate, version, os, arch)
+	return renderTemplate(e.URLTemplate, version, os, arch, e.Name, e.OSMap, e.ArchMap)
 }
 
 // RenderInnerPath renders the InnerPath template.
 func (e *PackageEntry) RenderInnerPath(version, os, arch string) (string, error) {
-	return e.render(e.InnerPath, version, os, arch)
+	return renderTemplate(e.InnerPath, version, os, arch, e.Name, e.OSMap, e.ArchMap)
 }
 
 // RenderCommand renders the Command template.
 func (e *PackageEntry) RenderCommand(version, os, arch string) (string, error) {
-	return e.render(e.Command, version, os, arch)
+	return renderTemplate(e.Command, version, os, arch, e.Name, e.OSMap, e.ArchMap)
 }
 
-func (e *PackageEntry) render(tmpl, version, os, arch string) (string, error) {
-	mappedOS := e.mapOS(os)
-	mappedArch := e.mapArch(arch)
+func (m *InstallMethod) RenderEnv(name, version, os, arch string) ([]string, error) {
+	result := make([]string, 0, len(m.Env))
+	for k, v := range m.Env {
+		rendered, err := renderTemplate(v, version, os, arch, name, m.OSMap, m.ArchMap)
+		if err != nil {
+			return nil, fmt.Errorf("render env %s: %w", k, err)
+		}
+		if rendered != "" {
+			result = append(result, k+"="+rendered)
+		}
+	}
+	return result, nil
+}
+
+func (m *InstallMethod) RenderInstallDir(name, version, os, arch string) (string, error) {
+	return renderTemplate(m.InstallDir, version, os, arch, name, m.OSMap, m.ArchMap)
+}
+
+func (m *InstallMethod) RenderURL(name, version, os, arch string) (string, error) {
+	return renderTemplate(m.URLTemplate, version, os, arch, name, m.OSMap, m.ArchMap)
+}
+
+func (m *InstallMethod) RenderInnerPath(name, version, os, arch string) (string, error) {
+	return renderTemplate(m.InnerPath, version, os, arch, name, m.OSMap, m.ArchMap)
+}
+
+func (m *InstallMethod) RenderCommand(name, version, os, arch string) (string, error) {
+	return renderTemplate(m.Command, version, os, arch, name, m.OSMap, m.ArchMap)
+}
+
+func renderTemplate(tmpl, version, os, arch, name string, osMap, archMap map[string]string) (string, error) {
+	mappedOS := mapValue(osMap, os)
+	mappedArch := mapValue(archMap, arch)
 
 	t, err := template.New("").Parse(tmpl)
 	if err != nil {
@@ -122,7 +220,7 @@ func (e *PackageEntry) render(tmpl, version, os, arch string) (string, error) {
 		VersionNoV: strings.TrimPrefix(version, "v"),
 		OS:         mappedOS,
 		Arch:       mappedArch,
-		Name:       e.Name,
+		Name:       name,
 	}
 
 	var buf bytes.Buffer
@@ -132,20 +230,38 @@ func (e *PackageEntry) render(tmpl, version, os, arch string) (string, error) {
 	return buf.String(), nil
 }
 
-func (e *PackageEntry) mapOS(os string) string {
-	if e.OSMap != nil {
-		if mapped, ok := e.OSMap[os]; ok {
+func mapValue(values map[string]string, key string) string {
+	if values != nil {
+		if mapped, ok := values[key]; ok {
 			return mapped
 		}
 	}
-	return os
+	return key
 }
 
-func (e *PackageEntry) mapArch(arch string) string {
-	if e.ArchMap != nil {
-		if mapped, ok := e.ArchMap[arch]; ok {
-			return mapped
-		}
+func (e *PackageEntry) legacyMethod() InstallMethod {
+	return InstallMethod{
+		Type:               legacyMethodType(e.Mode),
+		Priority:           100,
+		VersionFrom:        e.VersionFrom,
+		URLTemplate:        e.URLTemplate,
+		Mode:               e.Mode,
+		Command:            e.Command,
+		DocURL:             e.DocURL,
+		InnerPath:          e.InnerPath,
+		InstallDir:         e.InstallDir,
+		Symlink:            e.Symlink,
+		VersionPrefix:      e.VersionPrefix,
+		Env:                e.Env,
+		SupportedPlatforms: e.SupportedPlatforms,
+		OSMap:              e.OSMap,
+		ArchMap:            e.ArchMap,
 	}
-	return arch
+}
+
+func legacyMethodType(mode string) string {
+	if mode == "command" {
+		return "command"
+	}
+	return "binary"
 }

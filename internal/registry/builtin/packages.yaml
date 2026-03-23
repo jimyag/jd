@@ -1,6 +1,7 @@
 packages:
   - name: jd
     description: jimyag-download — install binaries from GitHub Releases
+    doc_url: "https://github.com/jimyag/jd#installation"
     version_from:
       type: github
       repo: jimyag/jd
@@ -16,6 +17,7 @@ packages:
 
   - name: go
     description: Go programming language toolchain
+    doc_url: "https://go.dev/doc/install"
     version_from:
       type: godev
     url_template: "https://go.dev/dl/{{.Version}}.{{.OS}}-{{.Arch}}.tar.gz"
@@ -32,6 +34,7 @@ packages:
 
   - name: tailscale
     description: VPN mesh network
+    doc_url: "https://tailscale.com/download/linux"
     command: "bash -c \"$(curl -fsSL https://tailscale.com/install.sh)\""
     mode: command
     supported_platforms:
@@ -39,6 +42,7 @@ packages:
 
   - name: kubectl
     description: Kubernetes CLI
+    doc_url: "https://kubernetes.io/docs/tasks/tools/"
     version_from:
       type: github
       repo: kubernetes/kubernetes
@@ -54,6 +58,7 @@ packages:
 
   - name: nexttrace
     description: Visual traceroute tool
+    doc_url: "https://github.com/nxtrace/NTrace-core#readme"
     version_from:
       type: github
       repo: nxtrace/NTrace-core
@@ -69,6 +74,7 @@ packages:
 
   - name: age
     description: Simple file encryption tool
+    doc_url: "https://github.com/FiloSottile/age#installation"
     version_from:
       type: github
       repo: FiloSottile/age
@@ -84,6 +90,7 @@ packages:
 
   - name: virtctl
     description: KubeVirt VM management CLI
+    doc_url: "https://kubevirt.io/user-guide/user_workloads/virtctl_client_tool/"
     version_from:
       type: github
       repo: kubevirt/kubevirt
@@ -99,6 +106,7 @@ packages:
 
   - name: helm
     description: Kubernetes package manager
+    doc_url: "https://helm.sh/docs/intro/install/"
     version_from:
       type: github
       repo: helm/helm
@@ -114,6 +122,7 @@ packages:
 
   - name: nettrace
     description: Linux network tracing tool (OpenCloudOS)
+    doc_url: "https://github.com/OpenCloudOS/nettrace#readme"
     version_from:
       type: github
       repo: OpenCloudOS/nettrace
@@ -128,6 +137,7 @@ packages:
 
   - name: gh
     description: GitHub CLI
+    doc_url: "https://github.com/cli/cli/releases/latest"
     version_from:
       type: github
       repo: cli/cli
@@ -143,6 +153,7 @@ packages:
 
   - name: dive
     description: Docker image layer explorer
+    doc_url: "https://github.com/wagoodman/dive#installation"
     version_from:
       type: github
       repo: wagoodman/dive
@@ -158,6 +169,7 @@ packages:
 
   - name: task
     description: Task runner / build tool (Taskfile)
+    doc_url: "https://taskfile.dev/installation/"
     command: "bash -c \"$(curl -fsSL https://taskfile.dev/install.sh)\""
     mode: command
     supported_platforms:
@@ -166,6 +178,7 @@ packages:
 
   - name: chezmoi
     description: Dotfiles manager
+    doc_url: "https://www.chezmoi.io/install/"
     version_from:
       type: github
       repo: twpayne/chezmoi
@@ -181,6 +194,7 @@ packages:
 
   - name: hugo
     description: Static site generator (extended edition)
+    doc_url: "https://gohugo.io/installation/"
     version_from:
       type: github
       repo: gohugoio/hugo
@@ -195,6 +209,7 @@ packages:
 
   - name: golangci-lint
     description: Go linters aggregator
+    doc_url: "https://golangci-lint.run/welcome/install/"
     command: "bash -c \"$(curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh)\" -- -b $(go env GOPATH)/bin"
     mode: command
     supported_platforms:
@@ -203,6 +218,7 @@ packages:
 
   - name: claude-code
     description: Claude Code CLI by Anthropic
+    doc_url: "https://docs.anthropic.com/en/docs/claude-code/quickstart"
     command: "bash -c \"$(curl -fsSL https://claude.ai/install.sh)\""
     mode: command
     supported_platforms:
@@ -211,22 +227,34 @@ packages:
 
   - name: codex
     description: OpenAI Codex CLI
-    command: "npm install -g @openai/codex"
-    mode: command
-    supported_platforms:
-      - linux
-      - darwin
+    doc_url: "https://github.com/openai/codex/blob/main/README.md"
+    version_from:
+      type: github
+      repo: openai/codex
+      tag_prefix: "rust-v"
+    url_template: "https://github.com/openai/codex/releases/download/{{.Version}}/codex-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "codex-{{.Arch}}-{{.OS}}"
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
 
   - name: gemini-cli
     description: Google Gemini CLI
-    command: "npm install -g @google/gemini-cli"
-    mode: command
-    supported_platforms:
-      - linux
-      - darwin
+    methods:
+      - type: npm
+        priority: 100
+        doc_url: "https://github.com/google-gemini/gemini-cli/blob/main/README.md"
+        package: "@google/gemini-cli"
+        supported_platforms:
+          - linux
+          - darwin
 
   - name: cursor
     description: Cursor AI code editor
+    doc_url: "https://cursor.com/download"
     command: "bash -c \"$(curl -fsSL https://cursor.com/install)\""
     mode: command
     supported_platforms:
@@ -235,6 +263,7 @@ packages:
 
   - name: frpc
     description: frp client — fast reverse proxy
+    doc_url: "https://github.com/fatedier/frp#readme"
     version_from:
       type: github
       repo: fatedier/frp
@@ -250,6 +279,7 @@ packages:
 
   - name: frps
     description: frp server — fast reverse proxy
+    doc_url: "https://github.com/fatedier/frp#readme"
     version_from:
       type: github
       repo: fatedier/frp
@@ -265,6 +295,7 @@ packages:
 
   - name: mihomo
     description: Rule-based proxy tunnel (Clash Meta)
+    doc_url: "https://wiki.metacubex.one/en/startup/"
     version_from:
       type: github
       repo: MetaCubeX/mihomo
@@ -280,6 +311,7 @@ packages:
 
   - name: gohttpserver
     description: HTTP file server with web UI
+    doc_url: "https://github.com/codeskyblue/gohttpserver#readme"
     version_from:
       type: github
       repo: codeskyblue/gohttpserver

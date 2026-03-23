@@ -23,6 +23,10 @@ jd <package>
 # Install a specific version
 jd <package>@<version>
 
+# Force a specific install method
+jd <package> --method binary
+jd <package> --method apt
+
 # List available versions (latest 10)
 jd <package> --list
 
@@ -56,14 +60,25 @@ You can also list all supported packages using the CLI:
 jd --list
 ```
 
-## Install Modes
+## Install Methods
 
-- `default` — downloads a tar.gz/zip archive and extracts the binary to `~/.local/bin`
-- `file` — downloads a single binary directly (useful for Go binaries distributed as single files)
-- `command` — runs a shell command (e.g. `npm install` or custom curl script)
+Each package can declare one or more install methods in priority order. `jd` sorts methods by `priority` from high to low and stops at the first successful one.
 
-Special cases:
-- `go` installs to `~/.go/<version>` and symlinks `~/.go/goroot`.
+Common method types:
+- `binary` — download an archive or file and install the binary
+- `command` — run an explicit shell command
+- `brew`, `apt`, `dnf`, `yum`, `pacman` — package manager installs
+- `go`, `npm` — language-specific installers
+
+Package manager defaults:
+- `apt`, `dnf`, `yum`, `pacman` use `sudo` by default
+- `brew`, `go`, `npm`, `command`, `binary` do not use `sudo` by default
+- `use_sudo: true|false` on a method overrides the default
+
+Hooks:
+- `pre_commands` run before the main method command
+- `post_commands` run only after the main method command succeeds
+- `doc_url` links to the upstream install documentation for that method
 
 ## Environment Variables
 
@@ -82,36 +97,74 @@ rm ~/.local/bin/<package>
 
 Edit `internal/registry/builtin/packages.yaml`.
 
-### Archive (Default)
+### Binary Method
 ```yaml
 - name: mytool
   description: My tool description
-  version_from:
-    type: github          # github or godev
-    repo: owner/repo
-    tag_prefix: "v"
-  url_template: "https://github.com/owner/repo/releases/download/{{.Version}}/mytool_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
-  inner_path: "mytool"   # path to binary inside archive
-  os_map:
-    darwin: darwin
-    linux: linux
-  arch_map:
-    amd64: amd64
-    arm64: arm64
+  methods:
+    - type: binary
+      priority: 100
+      version_from:
+        type: github          # github or godev
+        repo: owner/repo
+        tag_prefix: "v"
+      url_template: "https://github.com/owner/repo/releases/download/{{.Version}}/mytool_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+      inner_path: "mytool"   # path to binary inside archive
+      os_map:
+        darwin: darwin
+        linux: linux
+      arch_map:
+        amd64: amd64
+        arm64: arm64
 ```
 
-### Direct File
+### Package Manager Fallback
 ```yaml
-- name: single-binary
-  mode: file
-  url_template: "https://github.com/owner/repo/releases/download/{{.Version}}/tool-{{.OS}}-{{.Arch}}"
+- name: gh
+  description: GitHub CLI
+  methods:
+    - type: binary
+      priority: 100
+      doc_url: "https://github.com/cli/cli/releases/latest"
+      version_from:
+        type: github
+        repo: cli/cli
+        tag_prefix: "v"
+      url_template: "https://github.com/cli/cli/releases/download/{{.Version}}/gh_{{.VersionNoV}}_{{.OS}}_{{.Arch}}{{if eq .OS \"macOS\"}}.zip{{else}}.tar.gz{{end}}"
+      inner_path: "gh_{{.VersionNoV}}_{{.OS}}_{{.Arch}}/bin/gh"
+
+    - type: apt
+      priority: 60
+      doc_url: "https://github.com/cli/cli/blob/trunk/docs/install_linux.md"
+      package: gh
+      supported_platforms: ["linux"]
+      pre_commands:
+        - "(type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y))"
+        - "sudo mkdir -p -m 755 /etc/apt/keyrings"
+        - "out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null"
+        - "sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg"
+        - "sudo mkdir -p -m 755 /etc/apt/sources.list.d"
+        - "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null"
+        - "sudo apt update"
 ```
 
 ### Command
 ```yaml
 - name: npm-tool
-  mode: command
-  command: "npm install -g some-package"
+  methods:
+    - type: command
+      priority: 100
+      command: "npm install -g some-package"
+```
+
+### NPM
+```yaml
+- name: codex
+  methods:
+    - type: npm
+      priority: 100
+      doc_url: "https://github.com/openai/codex/blob/main/README.md"
+      package: "@openai/codex"
 ```
 
 Template variables: `{{.Version}}`, `{{.VersionNoV}}` (without leading `v`), `{{.OS}}`, `{{.Arch}}`, `{{.Name}}`

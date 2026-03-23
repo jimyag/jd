@@ -71,3 +71,28 @@ func TestBinaryName_Override(t *testing.T) {
 		t.Errorf("expected kube, got %s", entry.GetBinaryName())
 	}
 }
+
+func TestMethodsSortedByPriority(t *testing.T) {
+	entry := PackageEntry{
+		Name: "gh",
+		Methods: []InstallMethod{
+			{Type: "apt", Priority: 20},
+			{Type: "binary", Priority: 100},
+			{Type: "brew", Priority: 50},
+		},
+	}
+
+	methods := entry.SortedMethods()
+	if len(methods) != 3 {
+		t.Fatalf("got %d methods", len(methods))
+	}
+	if methods[0].Type != "binary" {
+		t.Fatalf("got first method %q", methods[0].Type)
+	}
+	if methods[1].Type != "brew" {
+		t.Fatalf("got second method %q", methods[1].Type)
+	}
+	if methods[2].Type != "apt" {
+		t.Fatalf("got third method %q", methods[2].Type)
+	}
+}

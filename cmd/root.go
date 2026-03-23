@@ -17,6 +17,10 @@ import (
 var rootListVersions bool
 var rootListAllVersions bool
 var rootComplete string
+var rootMethod string
+
+var loadRegistry = registry.LoadBuiltin
+var installPackage = installer.InstallWithOptions
 
 const defaultVersionLimit = 10
 
@@ -33,7 +37,7 @@ var rootCmd = &cobra.Command{
 		if len(args) != 0 {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
-		r, err := registry.LoadBuiltin()
+		r, err := loadRegistry()
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
@@ -53,7 +57,7 @@ var rootCmd = &cobra.Command{
 			return runComplete(cmd, rootComplete)
 		}
 
-		r, err := registry.LoadBuiltin()
+		r, err := loadRegistry()
 		if err != nil {
 			return err
 		}
@@ -73,7 +77,9 @@ var rootCmd = &cobra.Command{
 		if rootListVersions || rootListAllVersions {
 			return printVersions(entry, rootListAllVersions)
 		}
-		return installer.Install(context.Background(), entry, version)
+		return installPackage(context.Background(), entry, version, installer.InstallOptions{
+			Method: rootMethod,
+		})
 	},
 }
 
@@ -81,6 +87,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&rootListVersions, "list", false, "List all packages or package versions")
 	rootCmd.Flags().BoolVar(&rootListAllVersions, "list-all", false, "List all available versions for a package")
 	rootCmd.Flags().StringVar(&rootComplete, "complete", "", "Generate shell completion script (bash, zsh, fish, powershell)")
+	rootCmd.Flags().StringVar(&rootMethod, "method", "", "Force a specific install method (for example: binary, brew, apt)")
 	rootCmd.SetVersionTemplate("{{.Version}}\n")
 }
 
@@ -130,12 +137,20 @@ func parsePackageArg(arg string) (name, version string) {
 }
 
 func printVersions(entry *registry.PackageEntry, all bool) error {
-	if entry.VersionFrom.Type == "" {
-		fmt.Printf("package %s does not support version listing (installed via %s)\n", entry.Name, entry.Mode)
+	versionSource, ok := entry.VersionSourceForMethod(rootMethod)
+	if !ok {
+		mode := entry.Mode
+		if rootMethod != "" {
+			mode = rootMethod
+		}
+		if mode == "" && len(entry.Methods) > 0 {
+			mode = entry.Methods[0].Type
+		}
+		fmt.Printf("package %s does not support version listing (installed via %s)\n", entry.Name, mode)
 		return nil
 	}
 	fmt.Printf("fetching versions for %s...\n", entry.Name)
-	versions, err := versioner.List(entry.VersionFrom)
+	versions, err := versioner.List(versionSource)
 	if err != nil {
 		return err
 	}
