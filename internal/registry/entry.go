@@ -24,6 +24,7 @@ type PackageEntry struct {
 	Mode               string            `yaml:"mode"`                // "dir" (default) or "file"
 	InnerPath          string            `yaml:"inner_path"`          // path inside archive, supports template
 	InstallDir         string            `yaml:"install_dir"`         // install whole directory here instead of single binary (supports ~)
+	VersionPrefix      string            `yaml:"version_prefix"`      // prepended to user-supplied version if not already present (e.g. "go" for Go)
 	SupportedPlatforms []string          `yaml:"supported_platforms"` // "os/arch" pairs; empty means all supported
 	OSMap              map[string]string `yaml:"os_map"`
 	ArchMap             map[string]string `yaml:"arch_map"`

@@ -37,6 +37,8 @@ func Install(ctx context.Context, entry *registry.PackageEntry, version string) 
 			return err
 		}
 		version = v
+	} else if entry.VersionPrefix != "" && !strings.HasPrefix(version, entry.VersionPrefix) {
+		version = entry.VersionPrefix + version
 	}
 
 	goos := runtime.GOOS
