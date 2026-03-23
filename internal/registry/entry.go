@@ -3,6 +3,7 @@ package registry
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 )
 
@@ -15,22 +16,47 @@ type VersionSource struct {
 
 // PackageEntry describes a single installable package.
 type PackageEntry struct {
-	Name        string            `yaml:"name"`
-	Description string            `yaml:"description"`
-	BinaryName  string            `yaml:"binary_name"` // defaults to Name
-	VersionFrom VersionSource     `yaml:"version_from"`
-	URLTemplate string            `yaml:"url_template"`
-	IsArchive   bool              `yaml:"is_archive"`
-	InnerPath   string            `yaml:"inner_path"` // path inside archive, supports template
-	OSMap       map[string]string `yaml:"os_map"`
-	ArchMap     map[string]string `yaml:"arch_map"`
+	Name               string            `yaml:"name"`
+	Description        string            `yaml:"description"`
+	BinaryName         string            `yaml:"binary_name"` // defaults to Name
+	VersionFrom        VersionSource     `yaml:"version_from"`
+	URLTemplate        string            `yaml:"url_template"`
+	Mode               string            `yaml:"mode"`                // "dir" (default) or "file"
+	InnerPath          string            `yaml:"inner_path"`          // path inside archive, supports template
+	SupportedPlatforms []string          `yaml:"supported_platforms"` // "os/arch" pairs; empty means all supported
+	OSMap              map[string]string `yaml:"os_map"`
+	ArchMap            map[string]string `yaml:"arch_map"`
+}
+
+// SupportsPlatform returns true if the package supports the given GOOS/GOARCH.
+// An empty SupportedPlatforms list means all platforms are supported.
+// Entries can be:
+//   - "os"       — matches all arches for that OS (e.g. "linux")
+//   - "os/arch"  — exact match (e.g. "darwin/arm64")
+func (e *PackageEntry) SupportsPlatform(goos, goarch string) bool {
+	if len(e.SupportedPlatforms) == 0 {
+		return true
+	}
+	for _, p := range e.SupportedPlatforms {
+		if strings.Contains(p, "/") {
+			if p == goos+"/"+goarch {
+				return true
+			}
+		} else {
+			if p == goos {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 type templateVars struct {
-	Version string
-	OS      string
-	Arch    string
-	Name    string
+	Version    string
+	VersionNoV string // Version with leading "v" stripped, e.g. "2.88.1"
+	OS         string
+	Arch       string
+	Name       string
 }
 
 // GetBinaryName returns the binary name, defaulting to Name.
@@ -61,10 +87,11 @@ func (e *PackageEntry) render(tmpl, version, os, arch string) (string, error) {
 	}
 
 	vars := templateVars{
-		Version: version,
-		OS:      mappedOS,
-		Arch:    mappedArch,
-		Name:    e.Name,
+		Version:    version,
+		VersionNoV: strings.TrimPrefix(version, "v"),
+		OS:         mappedOS,
+		Arch:       mappedArch,
+		Name:       e.Name,
 	}
 
 	var buf bytes.Buffer

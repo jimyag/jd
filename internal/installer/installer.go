@@ -37,10 +37,14 @@ func Install(ctx context.Context, entry *registry.PackageEntry, version string) 
 		version = v
 	}
 
-	fmt.Printf("  resolving version %s... ok\n", version)
-
 	goos := runtime.GOOS
 	goarch := runtime.GOARCH
+
+	if !entry.SupportsPlatform(goos, goarch) {
+		return fmt.Errorf("%s does not support %s/%s", entry.Name, goos, goarch)
+	}
+
+	fmt.Printf("  resolving version %s... ok\n", version)
 
 	url, err := entry.RenderURL(version, goos, goarch)
 	if err != nil {
@@ -58,9 +62,9 @@ func Install(ctx context.Context, entry *registry.PackageEntry, version string) 
 	dst := filepath.Join(tmpDir, "download")
 
 	// Use ModeFile for direct binaries so go-getter saves to dst as a file.
-	// Use ModeDir for archives so go-getter extracts into dst as a directory.
+	// Use ModeDir (default) for archives so go-getter extracts into dst as a directory.
 	getMode := getter.ModeDir
-	if !entry.IsArchive {
+	if entry.Mode == "file" {
 		getMode = getter.ModeFile
 	}
 
