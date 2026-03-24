@@ -7,6 +7,12 @@ A CLI tool that downloads and installs developer tools from GitHub Releases usin
 Install using curl:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jimyag/jd/main/install.sh | sh
+
+# Install jd, then install packages with it
+curl -fsSL https://raw.githubusercontent.com/jimyag/jd/main/install.sh | sh -s -- gh kubectl
+
+# Install jd, then install a specific package version
+curl -fsSL https://raw.githubusercontent.com/jimyag/jd/main/install.sh | sh -s -- gh@2.80.0
 ```
 
 Or using Go:

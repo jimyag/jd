@@ -2,9 +2,9 @@
 set -e
 
 # Repository info
-REPO="jimyag/jd"
-BINARY_NAME="jd"
-INSTALL_DIR="${HOME}/.local/bin"
+REPO="${REPO:-jimyag/jd}"
+BINARY_NAME="${BINARY_NAME:-jd}"
+INSTALL_DIR="${INSTALL_DIR:-${HOME}/.local/bin}"
 
 # Detect OS
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -67,3 +67,8 @@ case ":${PATH}:" in
 esac
 
 "${INSTALL_DIR}/${BINARY_NAME}" --version
+
+if [ "$#" -gt 0 ]; then
+  echo "Installing packages with ${BINARY_NAME}: $*"
+  "${INSTALL_DIR}/${BINARY_NAME}" "$@"
+fi
