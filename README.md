@@ -1,6 +1,8 @@
 # jd
 
-A CLI tool that downloads and installs developer tools from GitHub Releases using a built-in registry.
+A CLI tool that installs developer tools from a built-in registry.
+
+`jd` can install release binaries, run package managers such as Homebrew and APT, and use language installers such as Go and npm.
 
 ## Installation
 
@@ -26,7 +28,7 @@ go install github.com/jimyag/jd@latest
 # Install the latest version of a tool
 jd <package>
 
-# Install a specific version
+# Install a specific version when the selected method supports versions
 jd <package>@<version>
 
 # Force a specific install method
@@ -49,12 +51,14 @@ jd --complete zsh > ~/.zshrc # or as needed
 ## Examples
 
 ```bash
-jd go                  # install latest Go toolchain
+jd go                  # install the latest Go toolchain
 jd go@1.24.0           # install a specific Go version
 jd --list              # list all supported packages
 jd kubectl --list      # show latest 10 kubectl versions
 jd helm
 jd gh
+jd jq --method brew    # force Homebrew
+jd jq --method apt     # force APT
 ```
 
 ## Supported Packages
@@ -70,7 +74,7 @@ Load order is:
 2. `~/.config/jd/packages.yaml`
 3. `~/.config/jd/packages.d/*.yaml` in lexical filename order
 
-If the same package name appears multiple times, the later definition replaces the earlier one.
+If the same package name appears in different registry files, the later file replaces the earlier one. A single YAML file cannot define the same package name twice.
 
 Example local registry:
 ```yaml
@@ -117,6 +121,14 @@ Hooks:
 - `post_commands` run only after the main method command succeeds
 - `doc_url` links to the upstream install documentation for that method
 
+Package-level fields such as `doc_url`, `version_from`, `url_template`, `os_map`, `arch_map`, and `supported_platforms` are inherited by methods unless the method overrides them.
+
+Version pins:
+- Binary methods use `version_from`, `url_template`, and `version_prefix`.
+- Go and npm methods replace an existing package suffix such as `@latest` when you run `jd <package>@<version>`.
+- Command methods can use `{{.Version}}` in `command`, hooks, package names, or env values.
+- Package manager methods such as `brew` and `apt` use the package name by default; pinning only applies if the configured command or package template uses `{{.Version}}`.
+
 ## Environment Variables
 
 | Variable | Description |
@@ -138,22 +150,25 @@ Edit `internal/registry/builtin/packages.yaml`.
 ```yaml
 - name: mytool
   description: My tool description
+  doc_url: "https://example.com/mytool"
+  version_from:
+    type: github          # github or godev
+    repo: owner/repo
+    tag_prefix: "v"
+  url_template: "https://github.com/owner/repo/releases/download/{{.Version}}/mytool_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+  os_map:
+    darwin: darwin
+    linux: linux
+  arch_map:
+    amd64: amd64
+    arm64: arm64
   methods:
     - type: binary
       priority: 100
-      version_from:
-        type: github          # github or godev
-        repo: owner/repo
-        tag_prefix: "v"
-      url_template: "https://github.com/owner/repo/releases/download/{{.Version}}/mytool_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
       inner_path: "mytool"   # path to binary inside archive
-      os_map:
-        darwin: darwin
-        linux: linux
-      arch_map:
-        amd64: amd64
-        arm64: arm64
 ```
+
+For a direct single-file download, set `mode: file`. If the downloaded file is gzip-compressed, `jd` detects and decompresses it before installing.
 
 ### Package Manager Fallback
 ```yaml
@@ -188,6 +203,8 @@ Edit `internal/registry/builtin/packages.yaml`.
 ### Command
 ```yaml
 - name: npm-tool
+  description: Example command installer
+  doc_url: "https://example.com/npm-tool"
   methods:
     - type: command
       priority: 100
@@ -197,11 +214,12 @@ Edit `internal/registry/builtin/packages.yaml`.
 ### NPM
 ```yaml
 - name: codex
+  description: OpenAI Codex CLI
+  doc_url: "https://github.com/openai/codex"
   methods:
     - type: npm
       priority: 100
-      doc_url: "https://github.com/openai/codex/blob/main/README.md"
-      package: "@openai/codex"
+      package: "@openai/codex@latest"
 ```
 
 Template variables: `{{.Version}}`, `{{.VersionNoV}}` (without leading `v`), `{{.OS}}`, `{{.Arch}}`, `{{.Name}}`
