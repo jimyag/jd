@@ -45,6 +45,29 @@ func TestList(t *testing.T) {
 	}
 }
 
+func TestLoadFromYAMLRejectsEmptyPackageName(t *testing.T) {
+	_, err := loadFromYAML([]byte(`
+packages:
+  - description: missing name
+`))
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestLoadFromYAMLRejectsDuplicatePackageName(t *testing.T) {
+	_, err := loadFromYAML([]byte(`
+packages:
+  - name: demo
+    description: first
+  - name: demo
+    description: second
+`))
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
 func TestBuiltinPackagesHaveDocURLs(t *testing.T) {
 	r, err := LoadBuiltin()
 	if err != nil {

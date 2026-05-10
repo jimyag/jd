@@ -1,6 +1,8 @@
 package installer
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"os"
 	"path/filepath"
@@ -54,6 +56,60 @@ func TestMoveBinary(t *testing.T) {
 	}
 }
 
+func TestMoveBinarySetsExecutableMode(t *testing.T) {
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "mybinary")
+	dst := filepath.Join(tmp, "bin", "mybinary")
+
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(src, []byte("fake binary"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := moveBinary(src, dst); err != nil {
+		t.Fatal(err)
+	}
+
+	info, err := os.Stat(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := info.Mode().Perm(); got != 0o755 {
+		t.Fatalf("got mode %o, want 755", got)
+	}
+}
+
+func TestDecompressGzipFileIfNeeded(t *testing.T) {
+	tmp := t.TempDir()
+	path := filepath.Join(tmp, "download")
+
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	if _, err := gz.Write([]byte("binary data")); err != nil {
+		t.Fatal(err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, buf.Bytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := decompressGzipFileIfNeeded(path); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "binary data" {
+		t.Fatalf("got %q", string(data))
+	}
+}
+
 func TestSelectMethodsSortsAndFilters(t *testing.T) {
 	entry := &registry.PackageEntry{
 		Name: "gh",
@@ -101,6 +157,72 @@ func TestSelectMethodsErrorsForMissingRequestedMethod(t *testing.T) {
 	_, err := selectMethods(entry, "apt", "linux", "amd64")
 	if err == nil {
 		t.Fatal("expected error")
+	}
+}
+
+func TestDefaultCommandForGoMethodUsesRequestedVersion(t *testing.T) {
+	method := &registry.InstallMethod{
+		Type:    "go",
+		Package: "golang.org/x/tools/gopls@latest",
+	}
+
+	got, err := defaultCommandForMethod(&registry.PackageEntry{Name: "gopls"}, method, "v0.19.0", "linux", "amd64")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "go install golang.org/x/tools/gopls@v0.19.0"
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
+func TestDefaultCommandForScopedNPMPackageUsesRequestedVersion(t *testing.T) {
+	method := &registry.InstallMethod{
+		Type:    "npm",
+		Package: "@openai/codex@latest",
+	}
+
+	got, err := defaultCommandForMethod(&registry.PackageEntry{Name: "codex"}, method, "1.2.3", "linux", "amd64")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "npm install -g @openai/codex@1.2.3"
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
+func TestResolveCommandVersionSkipsUnusedInheritedVersionSource(t *testing.T) {
+	method := &registry.InstallMethod{
+		Type:    "brew",
+		Package: "jq",
+		VersionFrom: registry.VersionSource{
+			Type: "github",
+			Repo: "stedolan/jq",
+		},
+	}
+
+	got, err := resolveCommandVersion(method, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "" {
+		t.Fatalf("got %q, want empty version", got)
+	}
+}
+
+func TestResolveCommandVersionDefaultsGoPackageToLatest(t *testing.T) {
+	method := &registry.InstallMethod{
+		Type:    "go",
+		Package: "golang.org/x/tools/gopls",
+	}
+
+	got, err := resolveCommandVersion(method, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "latest" {
+		t.Fatalf("got %q, want latest", got)
 	}
 }
 

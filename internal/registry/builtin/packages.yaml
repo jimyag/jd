@@ -324,3 +324,992 @@ packages:
     arch_map:
       amd64: amd64
       arm64: arm64
+
+  - name: zsh
+    description: Z shell
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: zsh
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: zsh
+        supported_platforms: [linux]
+
+  - name: tmux
+    description: terminal multiplexer
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: tmux
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: tmux
+        supported_platforms: [linux]
+
+  - name: hstr
+    description: shell history suggest box
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: hstr
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: hstr
+        supported_platforms: [linux]
+
+  - name: zoxide
+    description: smarter cd command
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: zoxide
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: zoxide
+        supported_platforms: [linux]
+
+  - name: fzf
+    description: command-line fuzzy finder
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: fzf
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: fzf
+        supported_platforms: [linux]
+
+  - name: yazi
+    description: terminal file manager
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: yazi
+        supported_platforms: [darwin]
+
+  - name: tree
+    description: directory tree viewer
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: tree
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: tree
+        supported_platforms: [linux]
+
+  - name: tldr
+    description: simplified command examples
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: tldr
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: tldr
+        supported_platforms: [linux]
+
+  - name: neovim
+    description: Vim-fork focused on extensibility and usability
+    binary_name: nvim
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: neovim
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: neovim
+        supported_platforms: [linux]
+
+  - name: vim
+    description: Vi IMproved text editor
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: vim
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: vim
+        supported_platforms: [linux]
+
+  - name: openai-cli
+    description: OpenAI command-line client
+    binary_name: openai
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: openai
+        supported_platforms: [linux, darwin]
+
+  - name: opencommit
+    description: AI generated commit messages
+    binary_name: oco
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: opencommit
+        supported_platforms: [linux, darwin]
+
+  - name: pnpm
+    description: fast disk space efficient package manager
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: pnpm
+        supported_platforms: [linux, darwin]
+
+  - name: mdbook
+    description: create books from Markdown files
+    methods:
+      - type: command
+        doc_url: "https://github.com/jimyag/jd#install-methods"
+        priority: 80
+        command: "cargo install mdbook"
+        supported_platforms: [linux, darwin]
+
+  - name: tokei
+    description: code statistics tool
+    methods:
+      - type: command
+        doc_url: "https://github.com/jimyag/jd#install-methods"
+        priority: 80
+        command: "cargo install tokei"
+        supported_platforms: [linux, darwin]
+
+  - name: rustlings
+    description: Rust exercises
+    methods:
+      - type: command
+        doc_url: "https://github.com/jimyag/jd#install-methods"
+        priority: 80
+        command: "cargo install rustlings"
+        supported_platforms: [linux, darwin]
+
+  - name: gopls
+    description: Go language server
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "golang.org/x/tools/gopls@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: goimports
+    description: Go import formatter
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "golang.org/x/tools/cmd/goimports@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: gofumpt
+    description: stricter gofmt
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "mvdan.cc/gofumpt@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: staticcheck
+    description: advanced Go static analysis
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "honnef.co/go/tools/cmd/staticcheck@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: nilaway
+    description: nil panic checker for Go
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "go.uber.org/nilaway/cmd/nilaway@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: gosec
+    description: Go security checker
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/securego/gosec/v2/cmd/gosec@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: deadcode
+    description: find unreachable Go code
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "golang.org/x/tools/cmd/deadcode@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: gocyclo
+    description: cyclomatic complexity checker for Go
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/fzipp/gocyclo/cmd/gocyclo@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: dlv
+    description: Go debugger
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/go-delve/delve/cmd/dlv@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: gotests
+    description: Go test generator
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/cweill/gotests/gotests@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: mockgen
+    description: Go mock generator
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "go.uber.org/mock/mockgen@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: gomodifytags
+    description: Go struct tag editor
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/fatih/gomodifytags@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: impl
+    description: Go interface implementation generator
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/josharian/impl@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: goreleaser
+    description: release automation for Go projects
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/goreleaser/goreleaser/v2@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: ginkgo
+    description: Go testing framework CLI
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/onsi/ginkgo/v2/ginkgo@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: cobra-cli
+    description: Cobra application generator
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/spf13/cobra-cli@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: protoc-gen-go
+    description: Protobuf Go code generator
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "google.golang.org/protobuf/cmd/protoc-gen-go@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: protoc-gen-go-grpc
+    description: Protobuf Go gRPC code generator
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: regctl
+    description: OCI registry client
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/regclient/regclient/cmd/regctl@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: nats
+    description: NATS command-line client
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/nats-io/natscli/nats@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: tfplugindocs
+    description: Terraform provider documentation generator
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: asmfmt
+    description: Go assembler formatter
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/klauspost/asmfmt/cmd/asmfmt@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: goplay
+    description: Go playground helper
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "golang.org/x/tools/cmd/goplay@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: reflex
+    description: run commands when files change
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/cespare/reflex@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: bson2json
+    description: BSON to JSON converter
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/ma6174/bsonex/tools/bson2json@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: git
+    description: distributed version control system
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: git
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: git
+        supported_platforms: [linux]
+
+  - name: git-lfs
+    description: Git large file storage
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: git-lfs
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: git-lfs
+        supported_platforms: [linux]
+
+  - name: lazygit
+    description: terminal UI for Git
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: lazygit
+        supported_platforms: [darwin]
+
+  - name: gitui
+    description: terminal UI for Git
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: gitui
+        supported_platforms: [darwin]
+
+  - name: pre-commit
+    description: Git hook manager
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: pre-commit
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: pre-commit
+        supported_platforms: [linux]
+
+  - name: tig
+    description: text-mode interface for Git
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: tig
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: tig
+        supported_platforms: [linux]
+
+  - name: cmake
+    description: build system generator
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: cmake
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: cmake
+        supported_platforms: [linux]
+
+  - name: ninja
+    description: small build system
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: ninja
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: ninja-build
+        supported_platforms: [linux]
+
+  - name: protobuf
+    description: Protocol Buffers compiler and libraries
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: protobuf
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: protobuf-compiler
+        supported_platforms: [linux]
+
+  - name: shellcheck
+    description: static analysis for shell scripts
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: shellcheck
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: shellcheck
+        supported_platforms: [linux]
+
+  - name: shfmt
+    description: shell parser and formatter
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: shfmt
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: shfmt
+        supported_platforms: [linux]
+
+  - name: jq
+    description: command-line JSON processor
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: jq
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: jq
+        supported_platforms: [linux]
+
+  - name: curl
+    description: command-line URL transfer tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: curl
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: curl
+        supported_platforms: [linux]
+
+  - name: wget
+    description: non-interactive network downloader
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: wget
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: wget
+        supported_platforms: [linux]
+
+  - name: httpie
+    description: user-friendly command-line HTTP client
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: httpie
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: httpie
+        supported_platforms: [linux]
+
+  - name: mtr
+    description: network diagnostic tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: mtr
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: mtr
+        supported_platforms: [linux]
+
+  - name: iperf3
+    description: network throughput tester
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: iperf3
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: iperf3
+        supported_platforms: [linux]
+
+  - name: ifstat
+    description: network interface statistics
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: ifstat
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: ifstat
+        supported_platforms: [linux]
+
+  - name: autossh
+    description: SSH session monitor and restart tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: autossh
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: autossh
+        supported_platforms: [linux]
+
+  - name: sshfs
+    description: filesystem client based on SSH
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: sshfs
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: sshfs
+        supported_platforms: [linux]
+
+  - name: openconnect
+    description: VPN client
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: openconnect
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: openconnect
+        supported_platforms: [linux]
+
+  - name: wireguard-tools
+    description: WireGuard command-line tools
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: wireguard-tools
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: wireguard-tools
+        supported_platforms: [linux]
+
+  - name: socat
+    description: multipurpose relay for bidirectional data transfer
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: socat
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: socat
+        supported_platforms: [linux]
+
+  - name: rclone
+    description: cloud storage sync tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: rclone
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: rclone
+        supported_platforms: [linux]
+
+  - name: restic
+    description: backup program
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: restic
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: restic
+        supported_platforms: [linux]
+
+  - name: s3cmd
+    description: command-line S3 client
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: s3cmd
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: s3cmd
+        supported_platforms: [linux]
+
+  - name: gdu
+    description: disk usage analyzer
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: gdu
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: gdu
+        supported_platforms: [linux]
+
+  - name: pandoc
+    description: document converter
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: pandoc
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: pandoc
+        supported_platforms: [linux]
+
+  - name: typst
+    description: markup-based typesetting system
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: typst
+        supported_platforms: [darwin]
+
+  - name: imagemagick
+    description: image manipulation tools
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: imagemagick
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: imagemagick
+        supported_platforms: [linux]
+
+  - name: ffmpeg
+    description: audio and video converter
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: ffmpeg
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: ffmpeg
+        supported_platforms: [linux]
+
+  - name: poppler
+    description: PDF rendering and utility tools
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: poppler
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: poppler-utils
+        supported_platforms: [linux]
+
+  - name: tesseract
+    description: OCR engine
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: tesseract
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: tesseract-ocr
+        supported_platforms: [linux]
+
+  - name: htop
+    description: interactive process viewer
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: htop
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: htop
+        supported_platforms: [linux]
+
+  - name: btop
+    description: resource monitor
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: btop
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: btop
+        supported_platforms: [linux]
+
+  - name: iotop
+    description: process I/O monitor
+    methods:
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: iotop
+        supported_platforms: [linux]
+
+  - name: sysstat
+    description: system performance tools
+    methods:
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: sysstat
+        supported_platforms: [linux]
+
+  - name: strace
+    description: system call tracer
+    methods:
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: strace
+        supported_platforms: [linux]
+
+  - name: lsof
+    description: list open files
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: lsof
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: lsof
+        supported_platforms: [linux]
+
+  - name: fastfetch
+    description: system information tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: fastfetch
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: fastfetch
+        supported_platforms: [linux]
+
+  - name: sevenzip
+    description: 7-Zip archive tools
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: sevenzip
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: 7zip
+        supported_platforms: [linux]
+
+  - name: argon2
+    description: password hashing utility
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: argon2
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: argon2
+        supported_platforms: [linux]
+
+  - name: gnupg
+    description: GNU Privacy Guard
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: gnupg
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
+        priority: 70
+        package: gnupg2
+        supported_platforms: [linux]

@@ -3,7 +3,6 @@ package registry
 import (
 	"bytes"
 	"fmt"
-	"slices"
 	"sort"
 	"strings"
 	"text/template"
@@ -67,7 +66,7 @@ type InstallMethod struct {
 //   - "os/arch"  — exact match (e.g. "darwin/arm64")
 func (e *PackageEntry) SupportsPlatform(goos, goarch string) bool {
 	if len(e.Methods) > 0 {
-		for _, method := range e.Methods {
+		for _, method := range e.SortedMethods() {
 			if method.SupportsPlatform(goos, goarch) {
 				return true
 			}
@@ -121,7 +120,10 @@ func (e *PackageEntry) SortedMethods() []InstallMethod {
 		methods = []InstallMethod{e.legacyMethod()}
 	}
 
-	sorted := slices.Clone(methods)
+	sorted := make([]InstallMethod, 0, len(methods))
+	for _, method := range methods {
+		sorted = append(sorted, e.methodWithDefaults(method))
+	}
 	sort.SliceStable(sorted, func(i, j int) bool {
 		return sorted[i].Priority > sorted[j].Priority
 	})
@@ -257,6 +259,49 @@ func (e *PackageEntry) legacyMethod() InstallMethod {
 		OSMap:              e.OSMap,
 		ArchMap:            e.ArchMap,
 	}
+}
+
+func (e *PackageEntry) methodWithDefaults(method InstallMethod) InstallMethod {
+	if method.VersionFrom.Type == "" {
+		method.VersionFrom = e.VersionFrom
+	}
+	if method.URLTemplate == "" {
+		method.URLTemplate = e.URLTemplate
+	}
+	if method.Mode == "" {
+		method.Mode = e.Mode
+	}
+	if method.Command == "" {
+		method.Command = e.Command
+	}
+	if method.DocURL == "" {
+		method.DocURL = e.DocURL
+	}
+	if method.InnerPath == "" {
+		method.InnerPath = e.InnerPath
+	}
+	if method.InstallDir == "" {
+		method.InstallDir = e.InstallDir
+	}
+	if method.Symlink == "" {
+		method.Symlink = e.Symlink
+	}
+	if method.VersionPrefix == "" {
+		method.VersionPrefix = e.VersionPrefix
+	}
+	if len(method.Env) == 0 {
+		method.Env = e.Env
+	}
+	if len(method.SupportedPlatforms) == 0 {
+		method.SupportedPlatforms = e.SupportedPlatforms
+	}
+	if len(method.OSMap) == 0 {
+		method.OSMap = e.OSMap
+	}
+	if len(method.ArchMap) == 0 {
+		method.ArchMap = e.ArchMap
+	}
+	return method
 }
 
 func legacyMethodType(mode string) string {

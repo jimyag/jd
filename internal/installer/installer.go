@@ -1,6 +1,7 @@
 package installer
 
 import (
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -73,6 +74,11 @@ func formatMethodError(method registry.InstallMethod, err error) error {
 
 func installMethod(ctx context.Context, entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string) error {
 	if isCommandMethod(method.Type) {
+		var err error
+		version, err = resolveCommandVersion(method, version)
+		if err != nil {
+			return err
+		}
 		return runCommand(ctx, entry, method, version, goos, goarch)
 	}
 
@@ -113,6 +119,11 @@ func installMethod(ctx context.Context, entry *registry.PackageEntry, method *re
 	client := &getter.Client{}
 	if _, err := client.Get(ctx, req); err != nil {
 		return fmt.Errorf("download %s: %w", url, err)
+	}
+	if method.Mode == "file" {
+		if err := decompressGzipFileIfNeeded(dst); err != nil {
+			return err
+		}
 	}
 
 	if method.InstallDir != "" {
@@ -295,6 +306,19 @@ func resolveVersion(method *registry.InstallMethod, version string) (string, err
 	return version, nil
 }
 
+func resolveCommandVersion(method *registry.InstallMethod, version string) (string, error) {
+	if version != "" {
+		return resolveVersion(method, version)
+	}
+	if commandUsesVersion(method) {
+		return resolveVersion(method, version)
+	}
+	if method.Type == "go" && !packageHasVersionSuffix(method.Package) {
+		return "latest", nil
+	}
+	return "", nil
+}
+
 func isCommandMethod(methodType string) bool {
 	switch methodType {
 	case "command", "apt", "dnf", "yum", "pacman", "brew", "go", "npm":
@@ -304,22 +328,26 @@ func isCommandMethod(methodType string) bool {
 	}
 }
 
-func defaultCommandForMethod(method *registry.InstallMethod) (string, error) {
+func defaultCommandForMethod(entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string) (string, error) {
+	pkg, err := renderPackage(entry, method, version, goos, goarch)
+	if err != nil {
+		return "", err
+	}
 	switch method.Type {
 	case "apt":
-		return "apt install -y " + method.Package, nil
+		return "apt install -y " + pkg, nil
 	case "dnf":
-		return "dnf install -y " + method.Package, nil
+		return "dnf install -y " + pkg, nil
 	case "yum":
-		return "yum install -y " + method.Package, nil
+		return "yum install -y " + pkg, nil
 	case "pacman":
-		return "pacman -S --noconfirm " + method.Package, nil
+		return "pacman -S --noconfirm " + pkg, nil
 	case "brew":
-		return "brew install " + method.Package, nil
+		return "brew install " + pkg, nil
 	case "go":
-		return "go install " + method.Package, nil
+		return "go install " + versionedPackage(pkg, version), nil
 	case "npm":
-		return "npm install -g " + method.Package, nil
+		return "npm install -g " + versionedPackage(pkg, version), nil
 	default:
 		if method.Command == "" {
 			return "", fmt.Errorf("method %s requires command or package", method.Type)
@@ -354,7 +382,7 @@ func ensureBinDir(dir string) error {
 func moveBinary(src, dst string) error {
 	// Try rename first (fastest, atomic, handles busy files if on same filesystem)
 	if err := os.Rename(src, dst); err == nil {
-		return nil
+		return os.Chmod(dst, 0o755)
 	}
 
 	// If rename fails (likely cross-device), we must copy.
@@ -376,6 +404,56 @@ func moveBinary(src, dst string) error {
 
 	if _, err := io.Copy(out, in); err != nil {
 		return fmt.Errorf("copy binary: %w", err)
+	}
+	return os.Chmod(dst, 0o755)
+}
+
+func decompressGzipFileIfNeeded(path string) error {
+	in, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("open downloaded file: %w", err)
+	}
+	magic := make([]byte, 2)
+	n, readErr := io.ReadFull(in, magic)
+	if closeErr := in.Close(); closeErr != nil {
+		return closeErr
+	}
+	if readErr != nil && readErr != io.ErrUnexpectedEOF {
+		return fmt.Errorf("inspect downloaded file: %w", readErr)
+	}
+	if n < 2 || magic[0] != 0x1f || magic[1] != 0x8b {
+		return nil
+	}
+
+	in, err = os.Open(path)
+	if err != nil {
+		return fmt.Errorf("open gzip file: %w", err)
+	}
+	defer in.Close()
+
+	gz, err := gzip.NewReader(in)
+	if err != nil {
+		return fmt.Errorf("read gzip file: %w", err)
+	}
+	defer gz.Close()
+
+	tmp := path + ".ungz"
+	out, err := os.OpenFile(tmp, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755)
+	if err != nil {
+		return fmt.Errorf("create decompressed file: %w", err)
+	}
+	if _, err := io.Copy(out, gz); err != nil {
+		_ = out.Close()
+		_ = os.Remove(tmp)
+		return fmt.Errorf("decompress gzip file: %w", err)
+	}
+	if err := out.Close(); err != nil {
+		_ = os.Remove(tmp)
+		return err
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		_ = os.Remove(tmp)
+		return fmt.Errorf("replace gzip file: %w", err)
 	}
 	return nil
 }
@@ -440,7 +518,7 @@ func runCommand(ctx context.Context, entry *registry.PackageEntry, method *regis
 		}
 	}
 
-	cmd, err := defaultCommandForMethod(method)
+	cmd, err := defaultCommandForMethod(entry, method, version, goos, goarch)
 	if err != nil {
 		return err
 	}
@@ -475,7 +553,8 @@ func executeShellCommand(ctx context.Context, entry *registry.PackageEntry, meth
 	}
 	env := append(os.Environ(), extra...)
 	for _, kv := range extra {
-		fmt.Printf("  env: %s\n", kv)
+		name, _, _ := strings.Cut(kv, "=")
+		fmt.Printf("  env: %s=<redacted>\n", name)
 	}
 
 	c := exec.CommandContext(ctx, "sh", "-c", cmd)
@@ -488,6 +567,53 @@ func executeShellCommand(ctx context.Context, entry *registry.PackageEntry, meth
 		return err
 	}
 	return nil
+}
+
+func renderPackage(entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string) (string, error) {
+	return renderTemplateIfNeeded(entry, method, method.Package, version, goos, goarch)
+}
+
+func versionedPackage(pkg, version string) string {
+	if version == "" {
+		return pkg
+	}
+	if packageHasVersionSuffix(pkg) {
+		lastAt := strings.LastIndex(pkg, "@")
+		return pkg[:lastAt+1] + version
+	}
+	return pkg + "@" + version
+}
+
+func packageHasVersionSuffix(pkg string) bool {
+	lastAt := strings.LastIndex(pkg, "@")
+	lastSlash := strings.LastIndex(pkg, "/")
+	return lastAt > lastSlash
+}
+
+func commandUsesVersion(method *registry.InstallMethod) bool {
+	if usesVersionTemplate(method.Command) || usesVersionTemplate(method.Package) {
+		return true
+	}
+	for _, command := range method.PreCommands {
+		if usesVersionTemplate(command) {
+			return true
+		}
+	}
+	for _, command := range method.PostCommands {
+		if usesVersionTemplate(command) {
+			return true
+		}
+	}
+	for _, value := range method.Env {
+		if usesVersionTemplate(value) {
+			return true
+		}
+	}
+	return false
+}
+
+func usesVersionTemplate(value string) bool {
+	return strings.Contains(value, ".Version")
 }
 
 func renderTemplateIfNeeded(entry *registry.PackageEntry, method *registry.InstallMethod, value, version, goos, goarch string) (string, error) {

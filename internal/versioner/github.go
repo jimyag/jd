@@ -6,9 +6,12 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 const githubAPIBase = "https://api.github.com"
+
+var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 // GitHub implements Versioner using the GitHub Releases API.
 type GitHub struct {
@@ -22,7 +25,7 @@ func (g *GitHub) Latest() (string, error) {
 		return "", err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("fetch latest release: %w", err)
 	}
@@ -71,7 +74,7 @@ func fetchGitHubReleases(url string) ([]githubRelease, error) {
 		return nil, err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("fetch releases: %w", err)
 	}

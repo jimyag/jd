@@ -96,3 +96,45 @@ func TestMethodsSortedByPriority(t *testing.T) {
 		t.Fatalf("got third method %q", methods[2].Type)
 	}
 }
+
+func TestMethodsInheritPackageDefaults(t *testing.T) {
+	entry := PackageEntry{
+		Name:          "demo",
+		DocURL:        "https://example.com/demo",
+		URLTemplate:   "https://example.com/{{.Version}}/{{.OS}}/{{.Arch}}/demo",
+		VersionPrefix: "v",
+		OSMap:         map[string]string{"linux": "Linux"},
+		ArchMap:       map[string]string{"amd64": "x86_64"},
+		VersionFrom: VersionSource{
+			Type: "github",
+			Repo: "owner/demo",
+		},
+		Methods: []InstallMethod{
+			{Type: "binary", Priority: 100},
+		},
+	}
+
+	methods := entry.SortedMethods()
+	if len(methods) != 1 {
+		t.Fatalf("got %d methods", len(methods))
+	}
+	method := methods[0]
+	if method.DocURL != entry.DocURL {
+		t.Fatalf("doc_url was not inherited")
+	}
+	if method.VersionFrom.Repo != entry.VersionFrom.Repo {
+		t.Fatalf("version_from was not inherited")
+	}
+	if method.VersionPrefix != entry.VersionPrefix {
+		t.Fatalf("version_prefix was not inherited")
+	}
+
+	got, err := method.RenderURL(entry.Name, "v1.0.0", "linux", "amd64")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "https://example.com/v1.0.0/Linux/x86_64/demo"
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}

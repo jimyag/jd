@@ -44,7 +44,11 @@ type goDevRelease struct {
 }
 
 func fetchGoDevReleases(url string) ([]goDevRelease, error) {
-	resp, err := http.Get(url) //nolint:gosec
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("fetch go.dev releases: %w", err)
 	}

@@ -57,6 +57,12 @@ func loadFromYAML(data []byte) (*Registry, error) {
 
 	r := &Registry{packages: make(map[string]*PackageEntry, len(root.Packages))}
 	for _, p := range root.Packages {
+		if p.Name == "" {
+			return nil, fmt.Errorf("registry package name cannot be empty")
+		}
+		if _, exists := r.packages[p.Name]; exists {
+			return nil, fmt.Errorf("duplicate registry package %q", p.Name)
+		}
 		r.packages[p.Name] = p
 	}
 	return r, nil
