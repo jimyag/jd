@@ -44,6 +44,9 @@ jd <package> --list-all
 # List all supported packages
 jd --list
 
+# Force refresh the remote registry cache
+jd --refresh-registry --list
+
 # Generate shell completion (bash, zsh, fish, powershell)
 jd --complete zsh > ~/.zshrc # or as needed
 ```
@@ -71,10 +74,13 @@ You can also extend or override the built-in registry locally:
 
 Load order is:
 1. built-in registry
-2. `~/.config/jd/packages.yaml`
-3. `~/.config/jd/packages.d/*.yaml` in lexical filename order
+2. remote registry from `JD_REGISTRY_URL` or the default `main` branch registry
+3. `~/.config/jd/packages.yaml`
+4. `~/.config/jd/packages.d/*.yaml` in lexical filename order
 
 If the same package name appears in different registry files, the later file replaces the earlier one. A single YAML file cannot define the same package name twice.
+
+The remote registry is cached for 30 minutes in the system cache directory. If the remote registry is unavailable, `jd` falls back to the bundled registry and still applies local overrides. Use `--refresh-registry` or `JD_REFRESH_REMOTE_REGISTRY=1` to force a remote refresh. Set `JD_DISABLE_REMOTE_REGISTRY=1` to use only the bundled and local registries.
 
 Example local registry:
 ```yaml
@@ -134,6 +140,10 @@ Version pins:
 | Variable | Description |
 |----------|-------------|
 | `GITHUB_TOKEN` | GitHub personal access token to avoid rate limiting when resolving versions |
+| `JD_REGISTRY_URL` | Remote registry YAML URL. Defaults to the `main` branch built-in registry file. |
+| `JD_REFRESH_REMOTE_REGISTRY` | Set to `1` to skip the 30-minute remote registry cache. |
+| `JD_DISABLE_REMOTE_REGISTRY` | Set to `1` to disable remote registry loading. |
+| `JD_REGISTRY_STRICT` | Set to `1` to fail when the remote registry cannot be loaded. |
 
 ## Uninstall
 

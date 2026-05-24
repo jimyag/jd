@@ -14,10 +14,12 @@ func TestInstallMethodFlagPassesThrough(t *testing.T) {
 	originalInstaller := installPackage
 	originalRegistryLoader := loadRegistry
 	originalMethod := rootMethod
+	originalRefreshRegistry := rootRefreshRegistry
 	t.Cleanup(func() {
 		installPackage = originalInstaller
 		loadRegistry = originalRegistryLoader
 		rootMethod = originalMethod
+		rootRefreshRegistry = originalRefreshRegistry
 	})
 
 	var gotMethod string
@@ -28,6 +30,7 @@ func TestInstallMethodFlagPassesThrough(t *testing.T) {
 	loadRegistry = registry.LoadBuiltin
 
 	rootMethod = "apt"
+	rootRefreshRegistry = false
 	if err := rootCmd.RunE(rootCmd, []string{"gh"}); err != nil {
 		t.Fatal(err)
 	}
@@ -39,10 +42,13 @@ func TestInstallMethodFlagPassesThrough(t *testing.T) {
 func TestRootCommandLoadsLocalRegistryFromHomeConfig(t *testing.T) {
 	originalInstaller := installPackage
 	originalRegistryLoader := loadRegistry
+	originalRefreshRegistry := rootRefreshRegistry
 	t.Cleanup(func() {
 		installPackage = originalInstaller
 		loadRegistry = originalRegistryLoader
+		rootRefreshRegistry = originalRefreshRegistry
 	})
+	t.Setenv("JD_DISABLE_REMOTE_REGISTRY", "1")
 
 	home := t.TempDir()
 	t.Setenv("HOME", home)
@@ -68,6 +74,7 @@ packages:
 		return nil
 	}
 	loadRegistry = registry.Load
+	rootRefreshRegistry = false
 
 	if err := rootCmd.RunE(rootCmd, []string{"local-tool"}); err != nil {
 		t.Fatal(err)

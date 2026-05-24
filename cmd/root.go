@@ -14,13 +14,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootListVersions bool
-var rootListAllVersions bool
-var rootComplete string
-var rootMethod string
+var (
+	rootListVersions    bool
+	rootListAllVersions bool
+	rootComplete        string
+	rootMethod          string
+	rootRefreshRegistry bool
+)
 
-var loadRegistry = registry.Load
-var installPackage = installer.InstallWithOptions
+var (
+	loadRegistry   = registry.Load
+	installPackage = installer.InstallWithOptions
+)
 
 const defaultVersionLimit = 10
 
@@ -57,7 +62,13 @@ var rootCmd = &cobra.Command{
 			return runComplete(cmd, rootComplete)
 		}
 
-		r, err := loadRegistry()
+		var r *registry.Registry
+		var err error
+		if rootRefreshRegistry {
+			r, err = registry.LoadWithOptions(registry.LoadOptions{RefreshRemote: true})
+		} else {
+			r, err = loadRegistry()
+		}
 		if err != nil {
 			return err
 		}
@@ -88,6 +99,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&rootListAllVersions, "list-all", false, "List all available versions for a package")
 	rootCmd.Flags().StringVar(&rootComplete, "complete", "", "Generate shell completion script (bash, zsh, fish, powershell)")
 	rootCmd.Flags().StringVar(&rootMethod, "method", "", "Force a specific install method (for example: binary, brew, apt)")
+	rootCmd.Flags().BoolVar(&rootRefreshRegistry, "refresh-registry", false, "Refresh the remote package registry cache")
 	rootCmd.SetVersionTemplate("{{.Version}}\n")
 }
 
