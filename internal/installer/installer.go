@@ -253,7 +253,7 @@ func locateBinary(dst string, entry *registry.PackageEntry, method *registry.Ins
 		if err != nil || fi.IsDir() {
 			return err
 		}
-		if strings.ToLower(fi.Name()) == strings.ToLower(entry.GetBinaryName()) {
+		if strings.EqualFold(fi.Name(), entry.GetBinaryName()) {
 			found = path
 			return io.EOF
 		}
