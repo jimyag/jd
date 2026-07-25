@@ -34,11 +34,17 @@ packages:
 
   - name: tailscale
     description: VPN mesh network
-    doc_url: "https://tailscale.com/download/linux"
-    command: "bash -c \"$(curl -fsSL https://tailscale.com/install.sh)\""
-    mode: command
-    supported_platforms:
-      - linux
+    methods:
+      - type: command
+        doc_url: "https://tailscale.com/download/linux"
+        priority: 80
+        command: "bash -c \"$(curl -fsSL https://tailscale.com/install.sh)\""
+        supported_platforms: [linux]
+      - type: command
+        doc_url: "https://tailscale.com/download/mac"
+        priority: 80
+        command: "brew install --cask tailscale-app"
+        supported_platforms: [darwin]
 
   - name: kubectl
     description: Kubernetes CLI
@@ -1313,3 +1319,1496 @@ packages:
         priority: 70
         package: gnupg2
         supported_platforms: [linux]
+
+  - name: act
+    description: run GitHub Actions locally
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: act
+        supported_platforms: [darwin]
+
+  - name: autocorrect
+    description: CJK copywriting linter and formatter
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: autocorrect
+        supported_platforms: [darwin]
+
+  - name: bash
+    description: GNU Bourne Again shell
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: bash
+        supported_platforms: [darwin]
+
+  - name: bat
+    description: cat clone with syntax highlighting
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: bat
+        supported_platforms: [darwin]
+
+  - name: bat-extras
+    description: command-line utilities built around bat
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: bat-extras
+        supported_platforms: [darwin]
+
+  - name: binutils
+    description: GNU binary utilities
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: binutils
+        supported_platforms: [darwin]
+
+  - name: bzip2
+    description: block-sorting file compressor
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: bzip2
+        supported_platforms: [darwin]
+
+  - name: chart-testing
+    description: Helm chart testing and linting tools
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: chart-testing
+        supported_platforms: [darwin]
+
+  - name: cloudflared
+    description: Cloudflare Tunnel client
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: cloudflared
+        supported_platforms: [darwin]
+
+  - name: coreutils
+    description: GNU core utilities
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: coreutils
+        supported_platforms: [darwin]
+
+  - name: create-dmg
+    description: DMG creation utility
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: create-dmg
+        supported_platforms: [darwin]
+
+  - name: croc
+    description: secure file transfer tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: croc
+        supported_platforms: [darwin]
+
+  - name: difftastic
+    description: syntax-aware diff tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: difftastic
+        supported_platforms: [darwin]
+
+  - name: duckdb
+    description: analytical SQL database CLI
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: duckdb
+        supported_platforms: [darwin]
+
+  - name: e2b
+    description: E2B sandbox management CLI
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: e2b
+        supported_platforms: [darwin]
+
+  - name: etcd
+    description: distributed key-value store
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: etcd
+        supported_platforms: [darwin]
+
+  - name: fail2ban
+    description: intrusion prevention daemon
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: fail2ban
+        supported_platforms: [darwin]
+
+  - name: fd
+    description: fast alternative to find
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: fd
+        supported_platforms: [darwin]
+
+  - name: gawk
+    description: GNU awk
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: gawk
+        supported_platforms: [darwin]
+
+  - name: gcc
+    description: GNU compiler collection
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: gcc
+        supported_platforms: [darwin]
+
+  - name: gist
+    description: GitHub Gist command-line client
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: gist
+        supported_platforms: [darwin]
+
+  - name: git-filter-repo
+    description: Git history rewriting tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: git-filter-repo
+        supported_platforms: [darwin]
+
+  - name: glab
+    description: GitLab CLI
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: glab
+        supported_platforms: [darwin]
+
+  - name: gnu-getopt
+    description: GNU command-line option parser
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: gnu-getopt
+        supported_platforms: [darwin]
+
+  - name: gnu-sed
+    description: GNU stream editor
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: gnu-sed
+        supported_platforms: [darwin]
+
+  - name: graphviz
+    description: graph visualization tools
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: graphviz
+        supported_platforms: [darwin]
+
+  - name: guile
+    description: GNU extension language
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: guile
+        supported_platforms: [darwin]
+
+  - name: iproute2mac
+    description: iproute2-style network CLI for macOS
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: iproute2mac
+        supported_platforms: [darwin]
+
+  - name: jid
+    description: interactive JSON digger
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: jid
+        supported_platforms: [darwin]
+
+  - name: jj
+    description: Jujutsu version control system
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: jj
+        supported_platforms: [darwin]
+
+  - name: jpeg-xl
+    description: JPEG XL tools and library
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: jpeg-xl
+        supported_platforms: [darwin]
+
+  - name: kind
+    description: Kubernetes clusters in Docker
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: kind
+        supported_platforms: [darwin]
+
+  - name: libadwaita
+    description: adaptive GNOME UI library
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: libadwaita
+        supported_platforms: [darwin]
+
+  - name: libiconv
+    description: character encoding conversion library
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: libiconv
+        supported_platforms: [darwin]
+
+  - name: mingw-w64
+    description: Windows cross-compilation toolchain
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: mingw-w64
+        supported_platforms: [darwin]
+
+  - name: mole
+    description: macOS cleanup and optimization CLI
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: mole
+        supported_platforms: [darwin]
+
+  - name: postgresql-17
+    description: PostgreSQL 17 database server and client
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: postgresql@17
+        supported_platforms: [darwin]
+
+  - name: progress
+    description: coreutils progress viewer
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: progress
+        supported_platforms: [darwin]
+
+  - name: pv
+    description: pipe data monitor
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: pv
+        supported_platforms: [darwin]
+
+  - name: qemu
+    description: machine emulator and virtualizer
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: qemu
+        supported_platforms: [darwin]
+
+  - name: redis
+    description: in-memory data store
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: redis
+        supported_platforms: [darwin]
+
+  - name: resvg
+    description: SVG rendering tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: resvg
+        supported_platforms: [darwin]
+
+  - name: ripgrep
+    description: fast recursive text search tool
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: ripgrep
+        supported_platforms: [darwin]
+
+  - name: samba
+    description: SMB file and print server
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: samba
+        supported_platforms: [darwin]
+
+  - name: telnet
+    description: Telnet client
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: telnet
+        supported_platforms: [darwin]
+
+  - name: tlrc
+    description: official tldr client written in Rust
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: tlrc
+        supported_platforms: [darwin]
+
+  - name: trivy
+    description: security scanner for containers and filesystems
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: trivy
+        supported_platforms: [darwin]
+
+  - name: unbound
+    description: validating recursive DNS resolver
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: unbound
+        supported_platforms: [darwin]
+
+  - name: websocat
+    description: WebSocket command-line client
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: websocat
+        supported_platforms: [darwin]
+
+  - name: yq
+    description: YAML, JSON, and XML processor
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: yq
+        supported_platforms: [darwin]
+
+  - name: zellij
+    description: terminal workspace and multiplexer
+    methods:
+      - type: brew
+        doc_url: "https://brew.sh/"
+        priority: 80
+        package: zellij
+        supported_platforms: [darwin]
+
+  - name: angular-cli
+    description: Angular CLI
+    binary_name: ng
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: "@angular/cli"
+        supported_platforms: [linux, darwin]
+
+  - name: inshellisense
+    description: IDE-style shell autocomplete
+    binary_name: is
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: "@microsoft/inshellisense"
+        supported_platforms: [linux, darwin]
+
+  - name: pencil
+    description: Pencil design CLI
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: "@pencil.dev/cli"
+        supported_platforms: [linux, darwin]
+
+  - name: doctoc
+    description: Markdown table of contents generator
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: "doctoc"
+        supported_platforms: [linux, darwin]
+
+  - name: npm
+    description: Node.js package manager
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: "npm"
+        supported_platforms: [linux, darwin]
+
+  - name: ts-node
+    description: TypeScript execution environment
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: "ts-node"
+        supported_platforms: [linux, darwin]
+
+  - name: typescript
+    description: TypeScript compiler
+    binary_name: tsc
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: "typescript"
+        supported_platforms: [linux, darwin]
+
+  - name: typescript-language-server
+    description: Language server for TypeScript
+    methods:
+      - type: npm
+        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
+        priority: 80
+        package: "typescript-language-server"
+        supported_platforms: [linux, darwin]
+
+  - name: actionlint
+    description: GitHub Actions workflow linter
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/rhysd/actionlint/cmd/actionlint@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: formattag
+    description: Go struct tag formatter
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/momaek/formattag@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: protoc-gen-go-vtproto
+    description: vtprotobuf Go code generator
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: qcurl
+    description: Qiniu authenticated HTTP client
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/qbox/kodo-libs/auth/qcurl@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: qshell
+    description: Qiniu command-line client
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "github.com/qiniu/qshell/v2/main@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: kubebuilder
+    description: Kubernetes API development framework CLI
+    methods:
+      - type: go
+        doc_url: "https://go.dev/ref/mod#go-install"
+        priority: 80
+        package: "sigs.k8s.io/kubebuilder/v4@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: uv
+    description: fast Python package and project manager
+    doc_url: "https://docs.astral.sh/uv/getting-started/installation/"
+    command: "curl -LsSf https://astral.sh/uv/install.sh | sh"
+    mode: command
+    supported_platforms: [linux, darwin]
+
+  - name: rapid-mlx
+    description: MLX inference and benchmarking toolkit
+    methods:
+      - type: command
+        doc_url: "https://pypi.org/project/rapid-mlx/"
+        priority: 80
+        command: "uv tool install rapid-mlx"
+        supported_platforms: [darwin/arm64]
+
+  - name: rustup
+    description: Rust toolchain installer
+    doc_url: "https://rustup.rs/"
+    command: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+    mode: command
+    supported_platforms: [linux, darwin]
+
+  - name: splitrail
+    description: coding agent token usage and cost monitor
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/splitrail"
+        priority: 80
+        package: splitrail
+        supported_platforms: [linux, darwin]
+
+  - name: ada-url
+    description: "WHATWG-compliant and fast URL parser written in modern C++"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/ada-url"
+        priority: 80
+        package: ada-url
+        supported_platforms: [darwin]
+
+  - name: aom
+    description: "Codec library for encoding and decoding AV1 video streams"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/aom"
+        priority: 80
+        package: aom
+        supported_platforms: [darwin]
+
+  - name: appstream
+    description: "Tools and libraries to work with AppStream metadata"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/appstream"
+        priority: 80
+        package: appstream
+        supported_platforms: [darwin]
+
+  - name: brotli
+    description: "Generic-purpose lossless compression algorithm by Google"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/brotli"
+        priority: 80
+        package: brotli
+        supported_platforms: [darwin]
+
+  - name: c-ares
+    description: "Asynchronous DNS library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/c-ares"
+        priority: 80
+        package: c-ares
+        supported_platforms: [darwin]
+
+  - name: cairo
+    description: "Vector graphics library with cross-device output support"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/cairo"
+        priority: 80
+        package: cairo
+        supported_platforms: [darwin]
+
+  - name: capstone
+    description: "Multi-platform, multi-architecture disassembly framework"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/capstone"
+        priority: 80
+        package: capstone
+        supported_platforms: [darwin]
+
+  - name: dav1d
+    description: "AV1 decoder targeted to be small and fast"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/dav1d"
+        priority: 80
+        package: dav1d
+        supported_platforms: [darwin]
+
+  - name: dtc
+    description: "Device tree compiler"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/dtc"
+        priority: 80
+        package: dtc
+        supported_platforms: [darwin]
+
+  - name: fontconfig
+    description: "XML-based font configuration API for X Windows"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/fontconfig"
+        priority: 80
+        package: fontconfig
+        supported_platforms: [darwin]
+
+  - name: freetype
+    description: "Software library to render fonts"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/freetype"
+        priority: 80
+        package: freetype
+        supported_platforms: [darwin]
+
+  - name: fribidi
+    description: "Implementation of the Unicode BiDi algorithm"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/fribidi"
+        priority: 80
+        package: fribidi
+        supported_platforms: [darwin]
+
+  - name: gd
+    description: "Graphics library to dynamically manipulate images"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/gd"
+        priority: 80
+        package: gd
+        supported_platforms: [darwin]
+
+  - name: gdk-pixbuf
+    description: "Toolkit for image loading and pixel buffer manipulation"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/gdk-pixbuf"
+        priority: 80
+        package: gdk-pixbuf
+        supported_platforms: [darwin]
+
+  - name: gettext
+    description: "GNU internationalization (i18n) and localization (l10n) library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/gettext"
+        priority: 80
+        package: gettext
+        supported_platforms: [darwin]
+
+  - name: giflib
+    description: "Library and utilities for processing GIFs"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/giflib"
+        priority: 80
+        package: giflib
+        supported_platforms: [darwin]
+
+  - name: glib
+    description: "Core application library for C"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/glib"
+        priority: 80
+        package: glib
+        supported_platforms: [darwin]
+
+  - name: gnutls
+    description: "GNU Transport Layer Security (TLS) Library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/gnutls"
+        priority: 80
+        package: gnutls
+        supported_platforms: [darwin]
+
+  - name: gpgme
+    description: "Library access to GnuPG"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/gpgme"
+        priority: 80
+        package: gpgme
+        supported_platforms: [darwin]
+
+  - name: graphite2
+    description: "Smart font renderer for non-Roman scripts"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/graphite2"
+        priority: 80
+        package: graphite2
+        supported_platforms: [darwin]
+
+  - name: gtk4
+    description: "Toolkit for creating graphical user interfaces"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/gtk4"
+        priority: 80
+        package: gtk4
+        supported_platforms: [darwin]
+
+  - name: gts
+    description: "GNU triangulated surface library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/gts"
+        priority: 80
+        package: gts
+        supported_platforms: [darwin]
+
+  - name: harfbuzz
+    description: "OpenType text shaping engine"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/harfbuzz"
+        priority: 80
+        package: harfbuzz
+        supported_platforms: [darwin]
+
+  - name: icu4c-78
+    description: "C/C++ and Java libraries for Unicode and globalization"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/icu4c%4078"
+        priority: 80
+        package: icu4c@78
+        supported_platforms: [darwin]
+
+  - name: jasper
+    description: "Library for manipulating JPEG-2000 images"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/jasper"
+        priority: 80
+        package: jasper
+        supported_platforms: [darwin]
+
+  - name: jpeg-turbo
+    description: "JPEG image codec that aids compression and decompression"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/jpeg-turbo"
+        priority: 80
+        package: jpeg-turbo
+        supported_platforms: [darwin]
+
+  - name: krb5
+    description: "Network authentication protocol"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/krb5"
+        priority: 80
+        package: krb5
+        supported_platforms: [darwin]
+
+  - name: lame
+    description: "High quality MPEG Audio Layer III (MP3) encoder"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/lame"
+        priority: 80
+        package: lame
+        supported_platforms: [darwin]
+
+  - name: libassuan
+    description: "Assuan IPC Library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libassuan"
+        priority: 80
+        package: libassuan
+        supported_platforms: [darwin]
+
+  - name: libavif
+    description: "Library for encoding and decoding .avif files"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libavif"
+        priority: 80
+        package: libavif
+        supported_platforms: [darwin]
+
+  - name: libdatrie
+    description: "Double-Array Trie Library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libdatrie"
+        priority: 80
+        package: libdatrie
+        supported_platforms: [darwin]
+
+  - name: libdeflate
+    description: "Heavily optimized DEFLATE/zlib/gzip compression and decompression"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libdeflate"
+        priority: 80
+        package: libdeflate
+        supported_platforms: [darwin]
+
+  - name: libevent
+    description: "Asynchronous event library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libevent"
+        priority: 80
+        package: libevent
+        supported_platforms: [darwin]
+
+  - name: libfyaml
+    description: "Fully feature complete YAML parser and emitter"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libfyaml"
+        priority: 80
+        package: libfyaml
+        supported_platforms: [darwin]
+
+  - name: libgcrypt
+    description: "Cryptographic library based on the code from GnuPG"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libgcrypt"
+        priority: 80
+        package: libgcrypt
+        supported_platforms: [darwin]
+
+  - name: libgit2
+    description: "C library of Git core methods that is re-entrant and linkable"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libgit2"
+        priority: 80
+        package: libgit2
+        supported_platforms: [darwin]
+
+  - name: libgpg-error
+    description: "Common error values for all GnuPG components"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libgpg-error"
+        priority: 80
+        package: libgpg-error
+        supported_platforms: [darwin]
+
+  - name: libheif
+    description: "ISO/IEC 23008-12:2017 HEIF file format decoder and encoder"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libheif"
+        priority: 80
+        package: libheif
+        supported_platforms: [darwin]
+
+  - name: libidn2
+    description: "International domain name library (IDNA2008, Punycode and TR46)"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libidn2"
+        priority: 80
+        package: libidn2
+        supported_platforms: [darwin]
+
+  - name: libksba
+    description: "X.509 and CMS library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libksba"
+        priority: 80
+        package: libksba
+        supported_platforms: [darwin]
+
+  - name: libpng
+    description: "Library for manipulating PNG images"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libpng"
+        priority: 80
+        package: libpng
+        supported_platforms: [darwin]
+
+  - name: librsvg
+    description: "Library to render SVG files using Cairo"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/librsvg"
+        priority: 80
+        package: librsvg
+        supported_platforms: [darwin]
+
+  - name: libtasn1
+    description: "ASN.1 structure parser library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libtasn1"
+        priority: 80
+        package: libtasn1
+        supported_platforms: [darwin]
+
+  - name: libtiff
+    description: "TIFF library and utilities"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libtiff"
+        priority: 80
+        package: libtiff
+        supported_platforms: [darwin]
+
+  - name: libtool
+    description: "Generic library support script"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libtool"
+        priority: 80
+        package: libtool
+        supported_platforms: [darwin]
+
+  - name: libvmaf
+    description: "Perceptual video quality assessment based on multi-method fusion"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libvmaf"
+        priority: 80
+        package: libvmaf
+        supported_platforms: [darwin]
+
+  - name: libxmlb
+    description: "Library for querying compressed XML metadata"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libxmlb"
+        priority: 80
+        package: libxmlb
+        supported_platforms: [darwin]
+
+  - name: libzip
+    description: "C library for reading, creating, and modifying zip archives"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/libzip"
+        priority: 80
+        package: libzip
+        supported_platforms: [darwin]
+
+  - name: little-cms2
+    description: "Color management engine supporting ICC profiles"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/little-cms2"
+        priority: 80
+        package: little-cms2
+        supported_platforms: [darwin]
+
+  - name: lmdb
+    description: "Lightning memory-mapped database: key-value data store"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/lmdb"
+        priority: 80
+        package: lmdb
+        supported_platforms: [darwin]
+
+  - name: lua
+    description: "Powerful, lightweight programming language"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/lua"
+        priority: 80
+        package: lua
+        supported_platforms: [darwin]
+
+  - name: luajit
+    description: "Just-In-Time Compiler (JIT) for the Lua programming language"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/luajit"
+        priority: 80
+        package: luajit
+        supported_platforms: [darwin]
+
+  - name: lz4
+    description: "Extremely Fast Compression algorithm"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/lz4"
+        priority: 80
+        package: lz4
+        supported_platforms: [darwin]
+
+  - name: m4
+    description: "Macro processing language"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/m4"
+        priority: 80
+        package: m4
+        supported_platforms: [darwin]
+
+  - name: ncurses
+    description: "Text-based UI library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/ncurses"
+        priority: 80
+        package: ncurses
+        supported_platforms: [darwin]
+
+  - name: netpbm
+    description: "Image manipulation"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/netpbm"
+        priority: 80
+        package: netpbm
+        supported_platforms: [darwin]
+
+  - name: nettle
+    description: "Low-level cryptographic library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/nettle"
+        priority: 80
+        package: nettle
+        supported_platforms: [darwin]
+
+  - name: node
+    description: "Open-source, cross-platform JavaScript runtime environment"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/node"
+        priority: 80
+        package: node
+        supported_platforms: [darwin]
+
+  - name: nspr
+    description: "Platform-neutral API for system-level and libc-like functions"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/nspr"
+        priority: 80
+        package: nspr
+        supported_platforms: [darwin]
+
+  - name: nss
+    description: "Libraries for security-enabled client and server applications"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/nss"
+        priority: 80
+        package: nss
+        supported_platforms: [darwin]
+
+  - name: oniguruma
+    description: "Regular expressions library"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/oniguruma"
+        priority: 80
+        package: oniguruma
+        supported_platforms: [darwin]
+
+  - name: openexr
+    description: "High dynamic-range image file format"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/openexr"
+        priority: 80
+        package: openexr
+        supported_platforms: [darwin]
+
+  - name: openjpeg
+    description: "Library for JPEG-2000 image manipulation"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/openjpeg"
+        priority: 80
+        package: openjpeg
+        supported_platforms: [darwin]
+
+  - name: openjph
+    description: "Open-source implementation of JPEG2000 Part-15 (or JPH or HTJ2K)"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/openjph"
+        priority: 80
+        package: openjph
+        supported_platforms: [darwin]
+
+  - name: openssl-3
+    description: "Cryptography and SSL/TLS Toolkit"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/openssl%403"
+        priority: 80
+        package: openssl@3
+        supported_platforms: [darwin]
+
+  - name: openssl-4
+    description: "Cryptography and SSL/TLS Toolkit"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/openssl%404"
+        priority: 80
+        package: openssl@4
+        supported_platforms: [darwin]
+
+  - name: p11-kit
+    description: "Library to load and enumerate PKCS#11 modules"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/p11-kit"
+        priority: 80
+        package: p11-kit
+        supported_platforms: [darwin]
+
+  - name: pango
+    description: "Framework for layout and rendering of i18n text"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/pango"
+        priority: 80
+        package: pango
+        supported_platforms: [darwin]
+
+  - name: pcre2
+    description: "Perl compatible regular expressions library with a new API"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/pcre2"
+        priority: 80
+        package: pcre2
+        supported_platforms: [darwin]
+
+  - name: pinentry
+    description: "Passphrase entry dialog utilizing the Assuan protocol"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/pinentry"
+        priority: 80
+        package: pinentry
+        supported_platforms: [darwin]
+
+  - name: pkgconf
+    description: "Package compiler and linker metadata toolkit"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/pkgconf"
+        priority: 80
+        package: pkgconf
+        supported_platforms: [darwin]
+
+  - name: python-3.14
+    description: "Interpreted, interactive, object-oriented programming language"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/python%403.14"
+        priority: 80
+        package: python@3.14
+        supported_platforms: [darwin]
+
+  - name: sdl2-compat
+    description: "SDL2 compatibility layer that uses SDL3 behind the scenes"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/sdl2-compat"
+        priority: 80
+        package: sdl2-compat
+        supported_platforms: [darwin]
+
+  - name: simdutf
+    description: "Unicode conversion routines, fast"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/simdutf"
+        priority: 80
+        package: simdutf
+        supported_platforms: [darwin]
+
+  - name: sqlite
+    description: "Command-line interface for SQLite"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/sqlite"
+        priority: 80
+        package: sqlite
+        supported_platforms: [darwin]
+
+  - name: svt-av1
+    description: "AV1 encoder"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/svt-av1"
+        priority: 80
+        package: svt-av1
+        supported_platforms: [darwin]
+
+  - name: tdb
+    description: "Trivial DataBase, by the Samba project"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/tdb"
+        priority: 80
+        package: tdb
+        supported_platforms: [darwin]
+
+  - name: vde
+    description: "Ethernet compliant virtual network"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/vde"
+        priority: 80
+        package: vde
+        supported_platforms: [darwin]
+
+  - name: webp
+    description: "Image format providing lossless and lossy compression for web images"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/webp"
+        priority: 80
+        package: webp
+        supported_platforms: [darwin]
+
+  - name: x264
+    description: "H.264/AVC encoder"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/x264"
+        priority: 80
+        package: x264
+        supported_platforms: [darwin]
+
+  - name: x265
+    description: "H.265/HEVC encoder"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/x265"
+        priority: 80
+        package: x265
+        supported_platforms: [darwin]
+
+  - name: xz
+    description: "General-purpose data compression with high compression ratio"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/xz"
+        priority: 80
+        package: xz
+        supported_platforms: [darwin]
+
+  - name: yamale
+    description: "Schema and validator for YAML"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/yamale"
+        priority: 80
+        package: yamale
+        supported_platforms: [darwin]
+
+  - name: zstd
+    description: "Zstandard is a real-time compression algorithm"
+    methods:
+      - type: brew
+        doc_url: "https://formulae.brew.sh/formula/zstd"
+        priority: 80
+        package: zstd
+        supported_platforms: [darwin]
+
+  - name: brew
+    description: Homebrew package manager
+    doc_url: "https://brew.sh/"
+    command: "bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+    mode: command
+    supported_platforms: [linux, darwin]
+
+  - name: bun
+    description: JavaScript runtime, bundler, test runner, and package manager
+    doc_url: "https://bun.com/docs/installation"
+    command: "curl -fsSL https://bun.com/install | bash"
+    mode: command
+    supported_platforms: [linux, darwin]
+
+  - name: mongodb-community-4.4
+    description: MongoDB 4.4 database server and legacy shell
+    methods:
+      - type: command
+        doc_url: "https://www.mongodb.com/docs/v4.4/tutorial/install-mongodb-on-os-x/"
+        priority: 80
+        command: "brew tap mongodb/brew && brew install mongodb-community@4.4"
+        supported_platforms: [darwin]
+
+  - name: mongodb-database-tools
+    description: MongoDB import, export, dump, restore, and statistics tools
+    methods:
+      - type: command
+        doc_url: "https://www.mongodb.com/docs/database-tools/installation/installation-macos/"
+        priority: 80
+        command: "brew tap mongodb/brew && brew install mongodb-database-tools"
+        supported_platforms: [darwin]
+
+  - name: basictex
+    description: Compact TeX Live distribution for macOS
+    doc_url: "https://www.tug.org/mactex/morepackages.html"
+    command: "brew install --cask basictex"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: zulu
+    description: Azul Zulu OpenJDK distribution
+    doc_url: "https://www.azul.com/downloads/"
+    command: "brew install --cask zulu"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: dotnet-sdk
+    description: Microsoft .NET SDK
+    doc_url: "https://dotnet.microsoft.com/download"
+    command: "brew install --cask dotnet-sdk"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: android-platform-tools
+    description: Android SDK platform command-line tools
+    doc_url: "https://developer.android.com/tools/releases/platform-tools"
+    command: "brew install --cask android-platform-tools"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: codexbar
+    description: Menu bar usage monitor for coding agents
+    doc_url: "https://codexbar.app/"
+    command: "brew install --cask codexbar"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: hammerspoon
+    description: macOS automation tool
+    doc_url: "https://www.hammerspoon.org/"
+    command: "brew install --cask hammerspoon"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: karabiner-elements
+    description: Keyboard customizer for macOS
+    doc_url: "https://karabiner-elements.pqrs.org/"
+    command: "brew install --cask karabiner-elements"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: obs
+    description: Open Broadcaster Software
+    doc_url: "https://obsproject.com/"
+    command: "brew install --cask obs"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: openscad
+    description: Programmers solid 3D CAD modeller
+    doc_url: "https://openscad.org/"
+    command: "brew install --cask openscad"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: orbstack
+    description: Container and Linux machine runtime for macOS
+    doc_url: "https://orbstack.dev/"
+    command: "brew install --cask orbstack"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: visual-studio-code
+    description: Microsoft Visual Studio Code editor
+    binary_name: code
+    doc_url: "https://code.visualstudio.com/"
+    command: "brew install --cask visual-studio-code"
+    mode: command
+    supported_platforms: [darwin]
+
+  - name: zerotier-one
+    description: ZeroTier virtual networking client
+    doc_url: "https://www.zerotier.com/download/"
+    command: "brew install --cask zerotier-one"
+    mode: command
+    supported_platforms: [darwin]
