@@ -80,6 +80,9 @@ func LoadWithOptions(opts LoadOptions) (*Registry, error) {
 		r.merge(local)
 	}
 
+	if err := r.validateUniqueBinaryNames(); err != nil {
+		return nil, err
+	}
 	return r, nil
 }
 
@@ -164,7 +167,27 @@ func loadFromYAML(data []byte) (*Registry, error) {
 		}
 		r.packages[p.Name] = p
 	}
+	if err := r.validateUniqueBinaryNames(); err != nil {
+		return nil, err
+	}
 	return r, nil
+}
+
+func (r *Registry) validateUniqueBinaryNames() error {
+	packages := r.List()
+	sort.Slice(packages, func(i, j int) bool {
+		return packages[i].Name < packages[j].Name
+	})
+
+	owners := make(map[string]string, len(packages))
+	for _, pkg := range packages {
+		binaryName := pkg.GetBinaryName()
+		if owner, exists := owners[binaryName]; exists {
+			return fmt.Errorf("duplicate registry binary name %q used by packages %q and %q", binaryName, owner, pkg.Name)
+		}
+		owners[binaryName] = pkg.Name
+	}
+	return nil
 }
 
 func loadFromFile(path string) (*Registry, error) {

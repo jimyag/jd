@@ -141,6 +141,26 @@ packages:
       amd64: x86_64
       arm64: aarch64
 
+  - name: pwru
+    description: Linux kernel packet tracing tool using eBPF
+    doc_url: "https://github.com/cilium/pwru#readme"
+    version_from:
+      type: github
+      repo: cilium/pwru
+      tag_prefix: "v"
+    url_template: "https://github.com/cilium/pwru/releases/download/{{.Version}}/pwru-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "pwru"
+    supported_platforms:
+      - linux/amd64
+      - linux/arm64
+      - linux/riscv64
+    os_map:
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+      riscv64: riscv64
+
   - name: gh
     description: GitHub CLI
     doc_url: "https://github.com/cli/cli/releases/latest"
@@ -2695,6 +2715,823 @@ packages:
         priority: 80
         package: zstd
         supported_platforms: [darwin]
+
+  - name: codex-security
+    description: OpenAI Codex Security vulnerability scanner
+    methods:
+      - type: npm
+        doc_url: "https://github.com/openai/codex-security#readme"
+        priority: 80
+        package: "@openai/codex-security"
+        supported_platforms: [linux, darwin]
+
+  - name: scriptc
+    description: TypeScript-to-native compiler
+    methods:
+      - type: npm
+        doc_url: "https://github.com/vercel-labs/scriptc#install"
+        priority: 80
+        package: scriptc
+        supported_platforms: [linux, darwin]
+
+  - name: openwiki
+    description: CLI for writing and maintaining codebase documentation
+    methods:
+      - type: npm
+        doc_url: "https://github.com/langchain-ai/openwiki#install"
+        priority: 80
+        package: openwiki
+        supported_platforms: [linux, darwin]
+
+  - name: defuddle
+    description: Extract readable Markdown from web pages
+    methods:
+      - type: npm
+        doc_url: "https://github.com/kepano/defuddle#cli-installation"
+        priority: 80
+        package: defuddle
+        supported_platforms: [linux, darwin]
+
+  - name: mvm
+    description: Go interpreter and virtual machine
+    methods:
+      - type: go
+        doc_url: "https://github.com/mvm-sh/mvm#usage"
+        priority: 80
+        package: "github.com/mvm-sh/mvm@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: pgcli
+    description: PostgreSQL CLI with autocompletion and syntax highlighting
+    methods:
+      - type: command
+        doc_url: "https://www.pgcli.com/install"
+        priority: 80
+        command: "uv tool install pgcli"
+        supported_platforms: [linux, darwin]
+
+  - name: kube-diagrams
+    description: Generate architecture diagrams from Kubernetes resources
+    methods:
+      - type: command
+        doc_url: "https://github.com/philippemerle/KubeDiagrams#installation"
+        priority: 80
+        command: "uv tool install KubeDiagrams"
+        supported_platforms: [linux, darwin]
+
+  - name: toolong
+    description: TUI for viewing, tailing, merging, and searching log files
+    methods:
+      - type: command
+        doc_url: "https://github.com/Textualize/toolong#installation"
+        priority: 80
+        command: "uv tool install toolong"
+        supported_platforms: [linux, darwin]
+
+  - name: dool
+    description: Linux system resource monitoring CLI
+    methods:
+      - type: command
+        doc_url: "https://github.com/scottchiefbaker/dool#installation"
+        priority: 80
+        command: "uv tool install dool"
+        supported_platforms: [linux]
+
+  - name: trurl
+    description: URL parsing and manipulation CLI
+    methods:
+      - type: brew
+        doc_url: "https://github.com/curl/trurl#install"
+        priority: 80
+        package: trurl
+        supported_platforms: [darwin]
+
+  - name: gojson
+    description: Generate Go struct definitions from JSON
+    methods:
+      - type: go
+        doc_url: "https://github.com/ChimeraCoder/gojson#installation"
+        priority: 80
+        package: "github.com/ChimeraCoder/gojson/gojson@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: silver-searcher
+    binary_name: ag
+    description: Fast source code searching tool
+    methods:
+      - type: brew
+        doc_url: "https://github.com/ggreer/the_silver_searcher#installing"
+        priority: 80
+        package: the_silver_searcher
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://packages.debian.org/silversearcher-ag"
+        priority: 70
+        package: silversearcher-ag
+        supported_platforms: [linux]
+
+  - name: mop
+    description: Stock market tracker TUI
+    methods:
+      - type: go
+        doc_url: "https://github.com/mop-tracker/mop#installing-mop-from-source"
+        priority: 80
+        package: "github.com/mop-tracker/mop/cmd/mop@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: rbw
+    description: Unofficial Bitwarden CLI
+    methods:
+      - type: brew
+        doc_url: "https://github.com/doy/rbw#homebrew"
+        priority: 80
+        package: rbw
+        supported_platforms: [darwin]
+      - type: command
+        doc_url: "https://github.com/doy/rbw#other"
+        priority: 70
+        command: "cargo install --locked rbw"
+        supported_platforms: [linux]
+
+  - name: buildah
+    description: OCI container image build tool
+    methods:
+      - type: brew
+        doc_url: "https://buildah.io/"
+        priority: 80
+        package: buildah
+        supported_platforms: [darwin]
+      - type: apt
+        doc_url: "https://buildah.io/"
+        priority: 70
+        package: buildah
+        supported_platforms: [linux]
+      - type: dnf
+        doc_url: "https://buildah.io/"
+        priority: 70
+        package: buildah
+        supported_platforms: [linux]
+
+  - name: nuitka
+    description: Python compiler and standalone executable builder
+    methods:
+      - type: command
+        doc_url: "https://nuitka.net/user-documentation/user-manual.html#installation"
+        priority: 80
+        command: "uv tool install Nuitka"
+        supported_platforms: [linux, darwin]
+
+  - name: fnm
+    description: Fast Node.js version manager
+    doc_url: "https://github.com/Schniz/fnm#installation"
+    command: "curl -fsSL https://fnm.vercel.app/install | bash"
+    mode: command
+    supported_platforms: [linux, darwin]
+
+  - name: gobee
+    description: Transpile a Go subset to eBPF C and typed bindings
+    methods:
+      - type: go
+        doc_url: "https://github.com/boratanrikulu/gobee#readme"
+        priority: 80
+        package: "github.com/boratanrikulu/gobee/cmd/gobee@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: artifact-fs
+    description: Lazily hydrated filesystem for large Git repositories
+    methods:
+      - type: go
+        doc_url: "https://github.com/cloudflare/artifact-fs#readme"
+        priority: 80
+        package: "github.com/cloudflare/artifact-fs/cmd/artifact-fs@latest"
+        supported_platforms: [linux, darwin]
+
+  - name: oci2rootfs
+    description: Convert OCI container images to ext4 root filesystem images
+    methods:
+      - type: command
+        doc_url: "https://github.com/arcboxlabs/oci2rootfs#readme"
+        priority: 80
+        command: "cargo install --git https://github.com/arcboxlabs/oci2rootfs oci2rootfs-cli"
+        supported_platforms: [linux, darwin]
+
+  - name: gitleaks
+    description: Secret scanner for Git repositories
+    doc_url: "https://github.com/gitleaks/gitleaks#readme"
+    version_from:
+      type: github
+      repo: gitleaks/gitleaks
+      tag_prefix: "v"
+    url_template: "https://github.com/gitleaks/gitleaks/releases/download/{{.Version}}/gitleaks_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "gitleaks"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: x64
+      arm64: arm64
+
+  - name: syswatch
+    description: Single-host system diagnostics TUI
+    doc_url: "https://github.com/matthart1983/syswatch#readme"
+    version_from:
+      type: github
+      repo: matthart1983/syswatch
+      tag_prefix: "v"
+    url_template: "https://github.com/matthart1983/syswatch/releases/download/{{.Version}}/syswatch-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "syswatch-{{.OS}}-{{.Arch}}"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: macos
+      linux: linux
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: stern
+    description: Multi-pod Kubernetes log tailing CLI
+    doc_url: "https://github.com/stern/stern#readme"
+    version_from:
+      type: github
+      repo: stern/stern
+      tag_prefix: "v"
+    url_template: "https://github.com/stern/stern/releases/download/{{.Version}}/stern_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "stern"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: pi
+    description: AI coding agent CLI and TUI
+    doc_url: "https://github.com/earendil-works/pi#readme"
+    version_from:
+      type: github
+      repo: earendil-works/pi
+      tag_prefix: "v"
+    url_template: "https://github.com/earendil-works/pi/releases/download/{{.Version}}/pi-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "pi/pi"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    arch_map:
+      amd64: x64
+      arm64: arm64
+
+  - name: binsider
+    description: ELF binary analysis TUI
+    doc_url: "https://github.com/orhun/binsider#readme"
+    version_from:
+      type: github
+      repo: orhun/binsider
+      tag_prefix: "v"
+    url_template: "https://github.com/orhun/binsider/releases/download/{{.Version}}/binsider-{{.VersionNoV}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "binsider-{{.VersionNoV}}/binsider"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: witr
+    description: Trace processes, ports, containers, and files to their origin
+    doc_url: "https://github.com/pranshuparmar/witr#readme"
+    version_from:
+      type: github
+      repo: pranshuparmar/witr
+      tag_prefix: "v"
+    url_template: "https://github.com/pranshuparmar/witr/releases/download/{{.Version}}/witr-{{.OS}}-{{.Arch}}"
+    mode: file
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: chrome-devtools-cli
+    binary_name: chrome-devtools
+    description: CLI for interacting with Chrome through CDP
+    doc_url: "https://github.com/aeroxy/chrome-devtools-cli#readme"
+    version_from:
+      type: github
+      repo: aeroxy/chrome-devtools-cli
+      tag_prefix: "v"
+    url_template: "https://github.com/aeroxy/chrome-devtools-cli/releases/download/{{.Version}}/chrome-devtools-macos-arm64.zip"
+    inner_path: "chrome-devtools"
+    supported_platforms: [darwin/arm64]
+
+  - name: rustnet
+    description: Per-process network monitoring TUI
+    doc_url: "https://github.com/domcyrus/rustnet#readme"
+    version_from:
+      type: github
+      repo: domcyrus/rustnet
+      tag_prefix: "v"
+    url_template: "https://github.com/domcyrus/rustnet/releases/download/{{.Version}}/rustnet-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "rustnet-{{.Version}}-{{.Arch}}-{{.OS}}/rustnet"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: edit
+    description: Terminal text editor from Microsoft
+    doc_url: "https://github.com/microsoft/edit#readme"
+    version_from:
+      type: github
+      repo: microsoft/edit
+      tag_prefix: "v"
+    url_template: "https://github.com/microsoft/edit/releases/download/{{.Version}}/edit-{{.VersionNoV}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "edit"
+    supported_platforms: [darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: apple-darwin
+      linux: linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: snoop
+    description: Modern eBPF syscall tracing TUI
+    doc_url: "https://github.com/pandaadir05/snoop#readme"
+    version_from:
+      type: github
+      repo: pandaadir05/snoop
+      tag_prefix: "v"
+    url_template: "https://github.com/pandaadir05/snoop/releases/download/{{.Version}}/snoop-{{.Arch}}-linux.tar.gz"
+    inner_path: "snoop"
+    supported_platforms: [linux/amd64, linux/arm64]
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: rtk
+    description: Token-saving proxy for common development commands
+    doc_url: "https://github.com/rtk-ai/rtk#readme"
+    version_from:
+      type: github
+      repo: rtk-ai/rtk
+      tag_prefix: "v"
+    url_template: "https://github.com/rtk-ai/rtk/releases/download/{{.Version}}/rtk-{{.Arch}}-{{if eq .OS \"darwin\"}}apple-darwin{{else}}{{if eq .Arch \"x86_64\"}}unknown-linux-musl{{else}}unknown-linux-gnu{{end}}{{end}}.tar.gz"
+    inner_path: "rtk"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: tcping
+    description: TCP port latency and reachability checker
+    doc_url: "https://github.com/pouriyajamshidi/tcping#readme"
+    version_from:
+      type: github
+      repo: pouriyajamshidi/tcping
+      tag_prefix: "v"
+    url_template: "https://github.com/pouriyajamshidi/tcping/releases/download/{{.Version}}/tcping-{{.OS}}-{{.Arch}}-static.tar.gz"
+    inner_path: "tcping"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: google-workspace-cli
+    binary_name: gws
+    description: Google Workspace command-line client
+    doc_url: "https://github.com/googleworkspace/cli#readme"
+    version_from:
+      type: github
+      repo: googleworkspace/cli
+      tag_prefix: "v"
+    url_template: "https://github.com/googleworkspace/cli/releases/download/{{.Version}}/google-workspace-cli-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "gws"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: rumdl
+    description: Markdown linter and formatter
+    doc_url: "https://github.com/rvben/rumdl#readme"
+    version_from:
+      type: github
+      repo: rvben/rumdl
+      tag_prefix: "v"
+    url_template: "https://github.com/rvben/rumdl/releases/download/{{.Version}}/rumdl-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "rumdl"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: peekaboo
+    description: macOS screenshot and visual automation CLI
+    doc_url: "https://github.com/openclaw/Peekaboo#readme"
+    version_from:
+      type: github
+      repo: openclaw/Peekaboo
+      tag_prefix: "v"
+    url_template: "https://github.com/openclaw/Peekaboo/releases/download/{{.Version}}/peekaboo-macos-universal.tar.gz"
+    inner_path: "peekaboo-macos-universal/peekaboo"
+    supported_platforms: [darwin/amd64, darwin/arm64]
+
+  - name: podtrace
+    description: eBPF-driven Kubernetes application diagnostics
+    doc_url: "https://github.com/gma1k/podtrace#readme"
+    version_from:
+      type: github
+      repo: gma1k/podtrace
+      tag_prefix: "v"
+    url_template: "https://github.com/gma1k/podtrace/releases/download/{{.Version}}/podtrace_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "podtrace"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: lux
+    description: Fast video downloader CLI
+    doc_url: "https://github.com/iawia002/lux#readme"
+    version_from:
+      type: github
+      repo: iawia002/lux
+      tag_prefix: "v"
+    url_template: "https://github.com/iawia002/lux/releases/download/{{.Version}}/lux_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "lux"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: Darwin
+      linux: Linux
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+
+  - name: nali
+    description: Offline IP geolocation and CDN lookup CLI
+    doc_url: "https://github.com/zu1k/nali#readme"
+    version_from:
+      type: github
+      repo: zu1k/nali
+      tag_prefix: "v"
+    url_template: "https://github.com/zu1k/nali/releases/download/{{.Version}}/nali-{{.OS}}-{{if and (eq .OS \"linux\") (eq .Arch \"arm64\")}}armv8{{else}}{{.Arch}}{{end}}-{{.Version}}.gz"
+    mode: file
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: cmd-wrapped
+    description: Command-line usage insights TUI
+    doc_url: "https://github.com/YiNNx/cmd-wrapped#readme"
+    version_from:
+      type: github
+      repo: YiNNx/cmd-wrapped
+      tag_prefix: "v"
+    url_template: "https://github.com/YiNNx/cmd-wrapped/releases/download/{{.Version}}/cmd-wrapped-{{.Arch}}-{{.OS}}.zip"
+    inner_path: "build/cmd-wrapped-{{.Arch}}-{{.OS}}"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: apple-darwin
+      linux: linux
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+
+  - name: fx
+    description: Terminal JSON viewer and processor
+    doc_url: "https://github.com/antonmedv/fx#readme"
+    version_from:
+      type: github
+      repo: antonmedv/fx
+      tag_prefix: "v"
+    url_template: "https://github.com/antonmedv/fx/releases/download/{{.Version}}/fx_{{.OS}}_{{.Arch}}"
+    mode: file
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: gotty
+    description: Share a terminal as a web application
+    doc_url: "https://github.com/yudai/gotty#readme"
+    version_from:
+      type: github
+      repo: yudai/gotty
+      tag_prefix: "v"
+    url_template: "https://github.com/yudai/gotty/releases/download/{{.Version}}/gotty_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "gotty"
+    supported_platforms: [darwin/amd64, linux/amd64]
+
+  - name: ffsend
+    description: Firefox Send command-line client
+    doc_url: "https://github.com/timvisee/ffsend#readme"
+    version_from:
+      type: github
+      repo: timvisee/ffsend
+      tag_prefix: "v"
+    url_template: "https://github.com/timvisee/ffsend/releases/download/{{.Version}}/ffsend-{{.Version}}-linux-x64-static"
+    mode: file
+    supported_platforms: [linux/amd64]
+
+  - name: bottom
+    binary_name: btm
+    description: Cross-platform system monitor TUI
+    doc_url: "https://github.com/ClementTsang/bottom#readme"
+    version_from:
+      type: github
+      repo: ClementTsang/bottom
+      tag_prefix: "v"
+    url_template: "https://github.com/ClementTsang/bottom/releases/download/{{.Version}}/bottom_{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "btm"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: q
+    description: DNS client supporting encrypted DNS transports
+    doc_url: "https://github.com/natesales/q#readme"
+    version_from:
+      type: github
+      repo: natesales/q
+      tag_prefix: "v"
+    url_template: "https://github.com/natesales/q/releases/download/{{.Version}}/q_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "q"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: migrate
+    description: Database migration CLI
+    doc_url: "https://github.com/golang-migrate/migrate#readme"
+    version_from:
+      type: github
+      repo: golang-migrate/migrate
+      tag_prefix: "v"
+    url_template: "https://github.com/golang-migrate/migrate/releases/download/{{.Version}}/migrate.{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "migrate"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: evans
+    description: Interactive gRPC client
+    doc_url: "https://github.com/ktr0731/evans#readme"
+    version_from:
+      type: github
+      repo: ktr0731/evans
+      tag_prefix: "v"
+    url_template: "https://github.com/ktr0731/evans/releases/download/{{.Version}}/evans_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "evans"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: duf
+    description: Disk usage and free-space TUI
+    doc_url: "https://github.com/muesli/duf#readme"
+    version_from:
+      type: github
+      repo: muesli/duf
+      tag_prefix: "v"
+    url_template: "https://github.com/muesli/duf/releases/download/{{.Version}}/duf_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "duf"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+
+  - name: reviewdog
+    description: Automated code review tool for linters
+    doc_url: "https://github.com/reviewdog/reviewdog#readme"
+    version_from:
+      type: github
+      repo: reviewdog/reviewdog
+      tag_prefix: "v"
+    url_template: "https://github.com/reviewdog/reviewdog/releases/download/{{.Version}}/reviewdog_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "reviewdog"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: Darwin
+      linux: Linux
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+
+  - name: xh
+    description: Friendly and fast HTTP client
+    doc_url: "https://github.com/ducaale/xh#readme"
+    version_from:
+      type: github
+      repo: ducaale/xh
+      tag_prefix: "v"
+    url_template: "https://github.com/ducaale/xh/releases/download/{{.Version}}/xh-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "xh-{{.Version}}-{{.Arch}}-{{.OS}}/xh"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-musl
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+
+  - name: pluto
+    description: Detect deprecated Kubernetes API versions
+    doc_url: "https://github.com/FairwindsOps/pluto#readme"
+    version_from:
+      type: github
+      repo: FairwindsOps/pluto
+      tag_prefix: "v"
+    url_template: "https://github.com/FairwindsOps/pluto/releases/download/{{.Version}}/pluto_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "pluto"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: kube-no-trouble
+    binary_name: kubent
+    description: Detect deprecated Kubernetes APIs
+    doc_url: "https://github.com/doitintl/kube-no-trouble#readme"
+    version_from:
+      type: github
+      repo: doitintl/kube-no-trouble
+      tag_prefix: "v"
+    url_template: "https://github.com/doitintl/kube-no-trouble/releases/download/{{.Version}}/kubent-{{.VersionNoV}}-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "kubent"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: termshark
+    description: Terminal UI for tshark
+    doc_url: "https://github.com/gcla/termshark#readme"
+    version_from:
+      type: github
+      repo: gcla/termshark
+      tag_prefix: "v"
+    url_template: "https://github.com/gcla/termshark/releases/download/{{.Version}}/termshark_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "termshark_{{.VersionNoV}}_{{.OS}}_{{.Arch}}/termshark"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: macOS
+      linux: linux
+    arch_map:
+      amd64: x64
+      arm64: arm64
+
+  - name: pulsarctl
+    description: Apache Pulsar command-line client
+    doc_url: "https://github.com/streamnative/pulsarctl#readme"
+    version_from:
+      type: github
+      repo: streamnative/pulsarctl
+      tag_prefix: "v"
+    url_template: "https://github.com/streamnative/pulsarctl/releases/download/{{.Version}}/pulsarctl-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "pulsarctl-{{.Arch}}-{{.OS}}/pulsarctl"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: firectl
+    description: Command-line client for Firecracker microVMs
+    doc_url: "https://github.com/firecracker-microvm/firectl#readme"
+    version_from:
+      type: github
+      repo: firecracker-microvm/firectl
+      tag_prefix: "v"
+    url_template: "https://github.com/firecracker-microvm/firectl/releases/download/{{.Version}}/firectl-{{.Version}}"
+    mode: file
+    supported_platforms: [linux/amd64]
+
+  - name: tracexec
+    description: Trace exec calls and pre-exec behavior
+    doc_url: "https://github.com/kxxt/tracexec#readme"
+    version_from:
+      type: github
+      repo: kxxt/tracexec
+      tag_prefix: "v"
+    url_template: "https://github.com/kxxt/tracexec/releases/download/{{.Version}}/tracexec-{{.Arch}}-unknown-linux-gnu-static.tar.gz"
+    inner_path: "tracexec"
+    supported_platforms: [linux/amd64, linux/arm64, linux/riscv64]
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+      riscv64: riscv64gc
+
+  - name: nerdlog
+    description: Remote-first multi-host log viewer TUI
+    doc_url: "https://github.com/dimonomid/nerdlog#readme"
+    version_from:
+      type: github
+      repo: dimonomid/nerdlog
+      tag_prefix: "v"
+    url_template: "https://github.com/dimonomid/nerdlog/releases/download/{{.Version}}/nerdlog_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "nerdlog"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: nerdctl
+    description: Docker-compatible CLI for containerd
+    doc_url: "https://github.com/containerd/nerdctl#readme"
+    version_from:
+      type: github
+      repo: containerd/nerdctl
+      tag_prefix: "v"
+    url_template: "https://github.com/containerd/nerdctl/releases/download/{{.Version}}/nerdctl-{{.VersionNoV}}-linux-{{.Arch}}.tar.gz"
+    inner_path: "nerdctl"
+    supported_platforms: [linux/amd64, linux/arm64]
+
+  - name: operator-sdk
+    description: CLI for building Kubernetes operators
+    doc_url: "https://github.com/operator-framework/operator-sdk#readme"
+    version_from:
+      type: github
+      repo: operator-framework/operator-sdk
+      tag_prefix: "v"
+    url_template: "https://github.com/operator-framework/operator-sdk/releases/download/{{.Version}}/operator-sdk_{{.OS}}_{{.Arch}}"
+    mode: file
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: velero
+    description: Kubernetes backup and migration CLI
+    doc_url: "https://github.com/velero-io/velero#readme"
+    version_from:
+      type: github
+      repo: velero-io/velero
+      tag_prefix: "v"
+    url_template: "https://github.com/velero-io/velero/releases/download/{{.Version}}/velero-{{.Version}}-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "velero-{{.Version}}-{{.OS}}-{{.Arch}}/velero"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
+  - name: ptcpdump
+    description: Process-aware eBPF packet capture CLI
+    doc_url: "https://github.com/mozillazg/ptcpdump#readme"
+    version_from:
+      type: github
+      repo: mozillazg/ptcpdump
+      tag_prefix: "v"
+    url_template: "https://github.com/mozillazg/ptcpdump/releases/download/{{.Version}}/ptcpdump_{{.VersionNoV}}_linux_{{.Arch}}.tar.gz"
+    inner_path: "ptcpdump"
+    supported_platforms: [linux/amd64, linux/arm64]
+
+  - name: kyanos
+    description: eBPF network traffic analysis CLI
+    doc_url: "https://github.com/hengyoush/kyanos#readme"
+    version_from:
+      type: github
+      repo: hengyoush/kyanos
+      tag_prefix: "v"
+    url_template: "https://github.com/hengyoush/kyanos/releases/download/{{.Version}}/kyanos_{{.VersionNoV}}_linux_{{.Arch}}.tar.gz"
+    inner_path: "kyanos"
+    supported_platforms: [linux/amd64, linux/arm64]
+
+  - name: 0xtools
+    binary_name: xcapture
+    description: Linux performance observability toolkit
+    doc_url: "https://github.com/tanelpoder/0xtools#readme"
+    version_from:
+      type: github
+      repo: tanelpoder/0xtools
+      tag_prefix: "v"
+    url_template: "https://github.com/tanelpoder/0xtools/releases/download/{{.Version}}/{{if eq .Arch \"arm64\"}}xcapture-arm{{else}}xcapture{{end}}"
+    mode: file
+    supported_platforms: [linux/amd64, linux/arm64]
+
+  - name: gum
+    description: Build interactive shell scripts with styled components
+    doc_url: "https://github.com/charmbracelet/gum#readme"
+    version_from:
+      type: github
+      repo: charmbracelet/gum
+      tag_prefix: "v"
+    url_template: "https://github.com/charmbracelet/gum/releases/download/{{.Version}}/gum_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "gum_{{.VersionNoV}}_{{.OS}}_{{.Arch}}/gum"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: Darwin
+      linux: Linux
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+
+  - name: colima
+    description: Container runtime CLI for macOS and Linux
+    doc_url: "https://github.com/abiosoft/colima#readme"
+    version_from:
+      type: github
+      repo: abiosoft/colima
+      tag_prefix: "v"
+    url_template: "https://github.com/abiosoft/colima/releases/download/{{.Version}}/colima-{{.OS}}-{{if and (eq .OS \"Linux\") (eq .Arch \"arm64\")}}aarch64{{else}}{{.Arch}}{{end}}"
+    mode: file
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+    os_map:
+      darwin: Darwin
+      linux: Linux
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+
+  - name: containerlab
+    description: Container-based networking lab CLI
+    doc_url: "https://github.com/srl-labs/containerlab#readme"
+    version_from:
+      type: github
+      repo: srl-labs/containerlab
+      tag_prefix: "v"
+    url_template: "https://github.com/srl-labs/containerlab/releases/download/{{.Version}}/containerlab_{{.VersionNoV}}_linux_{{.Arch}}.tar.gz"
+    inner_path: "containerlab"
+    supported_platforms: [linux/amd64, linux/arm64]
+
+  - name: yaegi
+    description: Go interpreter CLI
+    doc_url: "https://github.com/traefik/yaegi#readme"
+    version_from:
+      type: github
+      repo: traefik/yaegi
+      tag_prefix: "v"
+    url_template: "https://github.com/traefik/yaegi/releases/download/{{.Version}}/yaegi_{{.Version}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "yaegi"
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
 
   - name: brew
     description: Homebrew package manager

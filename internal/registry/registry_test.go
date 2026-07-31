@@ -71,6 +71,19 @@ packages:
 	}
 }
 
+func TestLoadFromYAMLRejectsDuplicateBinaryName(t *testing.T) {
+	_, err := loadFromYAML([]byte(`
+packages:
+  - name: first
+    binary_name: shared
+  - name: second
+    binary_name: shared
+`))
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
 func TestBuiltinPackagesHaveDocURLs(t *testing.T) {
 	r, err := LoadBuiltin()
 	if err != nil {
