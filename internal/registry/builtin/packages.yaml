@@ -395,40 +395,53 @@ packages:
 
   - name: zoxide
     description: smarter cd command
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: zoxide
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: zoxide
-        supported_platforms: [linux]
+    doc_url: "https://github.com/ajeetdsouza/zoxide/releases"
+    version_from:
+      type: github
+      repo: ajeetdsouza/zoxide
+      tag_prefix: "v"
+    url_template: "https://github.com/ajeetdsouza/zoxide/releases/download/v{{.VersionNoV}}/zoxide-{{.VersionNoV}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: zoxide
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-musl
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: fzf
     description: command-line fuzzy finder
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: fzf
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: fzf
-        supported_platforms: [linux]
+    doc_url: "https://github.com/junegunn/fzf/releases"
+    version_from:
+      type: github
+      repo: junegunn/fzf
+      tag_prefix: "v"
+    url_template: "https://github.com/junegunn/fzf/releases/download/v{{.VersionNoV}}/fzf-{{.VersionNoV}}-{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: fzf
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: yazi
     description: terminal file manager
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: yazi
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/sxyazi/yazi/releases"
+    version_from:
+      type: github
+      repo: sxyazi/yazi
+      tag_prefix: "v"
+    url_template: "https://github.com/sxyazi/yazi/releases/download/v{{.VersionNoV}}/yazi-{{.Arch}}-{{.OS}}.zip"
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: tree
     description: directory tree viewer
@@ -461,17 +474,20 @@ packages:
   - name: neovim
     description: Vim-fork focused on extensibility and usability
     binary_name: nvim
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: neovim
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: neovim
-        supported_platforms: [linux]
+    doc_url: "https://github.com/neovim/neovim/releases"
+    version_from:
+      type: github
+      repo: neovim/neovim
+      tag_prefix: "v"
+    url_template: "https://github.com/neovim/neovim/releases/download/{{.Version}}/nvim-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "nvim-{{.OS}}-{{.Arch}}/bin/nvim"
+    os_map:
+      darwin: macos
+      linux: linux
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: vim
     description: Vi IMproved text editor
@@ -784,35 +800,60 @@ packages:
 
   - name: git-lfs
     description: Git large file storage
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: git-lfs
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: git-lfs
-        supported_platforms: [linux]
+    doc_url: "https://github.com/git-lfs/git-lfs/releases"
+    version_from:
+      type: github
+      repo: git-lfs/git-lfs
+      tag_prefix: "v"
+    url_template: "https://github.com/git-lfs/git-lfs/releases/download/{{.Version}}/git-lfs-{{.OS}}-{{.Arch}}-{{.Version}}{{if eq .OS \"darwin\"}}.zip{{else}}.tar.gz{{end}}"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: lazygit
     description: terminal UI for Git
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: lazygit
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/jesseduffield/lazygit/releases"
+    version_from:
+      type: github
+      repo: jesseduffield/lazygit
+      tag_prefix: "v"
+    url_template: "https://github.com/jesseduffield/lazygit/releases/download/v{{.VersionNoV}}/lazygit_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: lazygit
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: gitui
     description: terminal UI for Git
+    doc_url: "https://github.com/gitui-org/gitui/releases"
+    version_from:
+      type: github
+      repo: gitui-org/gitui
+      tag_prefix: "v"
     methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: gitui
-        supported_platforms: [darwin]
+      - type: binary
+        url_template: "https://github.com/gitui-org/gitui/releases/download/{{.Version}}/gitui-mac.tar.gz"
+        inner_path: gitui
+        supported_platforms: [darwin/arm64]
+      - type: binary
+        url_template: "https://github.com/gitui-org/gitui/releases/download/{{.Version}}/gitui-mac-x86.tar.gz"
+        inner_path: gitui
+        supported_platforms: [darwin/amd64]
+      - type: binary
+        url_template: "https://github.com/gitui-org/gitui/releases/download/{{.Version}}/gitui-linux-{{.Arch}}.tar.gz"
+        inner_path: gitui
+        arch_map:
+          amd64: x86_64
+          arm64: aarch64
+        supported_platforms: [linux]
 
   - name: pre-commit
     description: Git hook manager
@@ -844,87 +885,91 @@ packages:
 
   - name: cmake
     description: build system generator
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: cmake
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: cmake
-        supported_platforms: [linux]
+    doc_url: "https://github.com/Kitware/CMake/releases"
+    version_from:
+      type: github
+      repo: Kitware/CMake
+      tag_prefix: "v"
+    url_template: "https://github.com/Kitware/CMake/releases/download/{{.Version}}/cmake-{{.VersionNoV}}-{{if eq .OS \"darwin\"}}macos-universal{{else}}linux-{{.Arch}}{{end}}.tar.gz"
+    inner_path: "cmake-{{.VersionNoV}}-{{if eq .OS \"darwin\"}}macos-universal/CMake.app/Contents/bin/cmake{{else}}linux-{{.Arch}}/bin/cmake{{end}}"
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: ninja
     description: small build system
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: ninja
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: ninja-build
-        supported_platforms: [linux]
+    doc_url: "https://github.com/ninja-build/ninja/releases"
+    version_from:
+      type: github
+      repo: ninja-build/ninja
+      tag_prefix: "v"
+    url_template: "https://github.com/ninja-build/ninja/releases/download/{{.Version}}/ninja-{{if eq .OS \"darwin\"}}mac{{else}}linux{{if eq .Arch \"arm64\"}}-aarch64{{end}}{{end}}.zip"
+    inner_path: ninja
+    supported_platforms: [linux, darwin]
 
   - name: protobuf
     description: Protocol Buffers compiler and libraries
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: protobuf
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: protobuf-compiler
-        supported_platforms: [linux]
+    binary_name: protoc
+    doc_url: "https://github.com/protocolbuffers/protobuf/releases"
+    version_from:
+      type: github
+      repo: protocolbuffers/protobuf
+      tag_prefix: "v"
+    url_template: "https://github.com/protocolbuffers/protobuf/releases/download/{{.Version}}/protoc-{{.VersionNoV}}-{{if eq .OS \"darwin\"}}osx-{{if eq .Arch \"arm64\"}}aarch_64{{else}}x86_64{{end}}{{else}}linux-{{if eq .Arch \"arm64\"}}aarch_64{{else}}x86_64{{end}}{{end}}.zip"
+    inner_path: bin/protoc
+    supported_platforms: [linux, darwin]
 
   - name: shellcheck
     description: static analysis for shell scripts
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: shellcheck
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: shellcheck
-        supported_platforms: [linux]
+    doc_url: "https://github.com/koalaman/shellcheck/releases"
+    version_from:
+      type: github
+      repo: koalaman/shellcheck
+      tag_prefix: "v"
+    url_template: "https://github.com/koalaman/shellcheck/releases/download/{{.Version}}/shellcheck-{{.Version}}.{{.OS}}.{{.Arch}}.tar.gz"
+    inner_path: "shellcheck-{{.Version}}/shellcheck"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: shfmt
     description: shell parser and formatter
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: shfmt
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: shfmt
-        supported_platforms: [linux]
+    mode: file
+    doc_url: "https://github.com/mvdan/sh/releases"
+    version_from:
+      type: github
+      repo: mvdan/sh
+      tag_prefix: "v"
+    url_template: "https://github.com/mvdan/sh/releases/download/{{.Version}}/shfmt_{{.Version}}_{{.OS}}_{{.Arch}}"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: jq
     description: command-line JSON processor
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: jq
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: jq
-        supported_platforms: [linux]
+    mode: file
+    doc_url: "https://github.com/jqlang/jq/releases"
+    version_from:
+      type: github
+      repo: jqlang/jq
+      tag_prefix: "jq-"
+    url_template: "https://github.com/jqlang/jq/releases/download/{{.Version}}/jq-{{.OS}}-{{.Arch}}"
+    os_map:
+      darwin: macos
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: curl
     description: command-line URL transfer tool
@@ -1082,31 +1127,37 @@ packages:
 
   - name: rclone
     description: cloud storage sync tool
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: rclone
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: rclone
-        supported_platforms: [linux]
+    doc_url: "https://github.com/rclone/rclone/releases"
+    version_from:
+      type: github
+      repo: rclone/rclone
+      tag_prefix: "v"
+    url_template: "https://github.com/rclone/rclone/releases/download/{{.Version}}/rclone-{{.Version}}-{{.OS}}-{{.Arch}}.zip"
+    inner_path: rclone
+    os_map:
+      darwin: osx
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: restic
     description: backup program
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: restic
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: restic
-        supported_platforms: [linux]
+    mode: file
+    doc_url: "https://github.com/restic/restic/releases"
+    version_from:
+      type: github
+      repo: restic/restic
+      tag_prefix: "v"
+    url_template: "https://github.com/restic/restic/releases/download/{{.Version}}/restic_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.bz2"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: s3cmd
     description: command-line S3 client
@@ -1124,40 +1175,51 @@ packages:
 
   - name: gdu
     description: disk usage analyzer
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: gdu
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: gdu
-        supported_platforms: [linux]
+    doc_url: "https://github.com/dundee/gdu/releases"
+    version_from:
+      type: github
+      repo: dundee/gdu
+      tag_prefix: "v"
+    url_template: "https://github.com/dundee/gdu/releases/download/v{{.VersionNoV}}/gdu_{{.OS}}_{{.Arch}}.tgz"
+    inner_path: "gdu_{{.OS}}_{{.Arch}}"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: pandoc
     description: document converter
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: pandoc
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: pandoc
-        supported_platforms: [linux]
+    doc_url: "https://github.com/jgm/pandoc/releases"
+    version_from:
+      type: github
+      repo: jgm/pandoc
+      tag_prefix: ""
+    url_template: "https://github.com/jgm/pandoc/releases/download/{{.Version}}/pandoc-{{.VersionNoV}}-{{if eq .OS \"macOS\"}}{{if eq .Arch \"amd64\"}}x86_64{{else}}arm64{{end}}{{else}}{{if eq .Arch \"amd64\"}}amd64{{else}}arm64{{end}}{{end}}-{{.OS}}{{if eq .OS \"macOS\"}}.zip{{else}}.tar.gz{{end}}"
+    inner_path: pandoc
+    os_map:
+      darwin: macOS
+      linux: linux
+    supported_platforms: [linux, darwin]
 
   - name: typst
     description: markup-based typesetting system
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: typst
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/typst/typst/releases"
+    version_from:
+      type: github
+      repo: typst/typst
+      tag_prefix: "v"
+    url_template: "https://github.com/typst/typst/releases/download/{{.Version}}/typst-{{.Arch}}-{{.OS}}.tar.xz"
+    inner_path: "typst-{{.Arch}}-{{.OS}}/typst"
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-musl
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: imagemagick
     description: image manipulation tools
@@ -1231,16 +1293,24 @@ packages:
 
   - name: btop
     description: resource monitor
+    version_from:
+      type: github
+      repo: aristocratos/btop
+      tag_prefix: "v"
     methods:
       - type: brew
         doc_url: "https://brew.sh/"
         priority: 80
         package: btop
         supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: btop
+      - type: binary
+        doc_url: "https://github.com/aristocratos/btop/releases"
+        priority: 90
+        url_template: "https://github.com/aristocratos/btop/releases/download/v{{.VersionNoV}}/btop-{{.Arch}}-unknown-linux-musl.tar.gz"
+        inner_path: btop/bin/btop
+        arch_map:
+          amd64: x86_64
+          arm64: aarch64
         supported_platforms: [linux]
 
   - name: iotop
@@ -1286,31 +1356,32 @@ packages:
 
   - name: fastfetch
     description: system information tool
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: fastfetch
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: fastfetch
-        supported_platforms: [linux]
+    doc_url: "https://github.com/fastfetch-cli/fastfetch/releases"
+    version_from:
+      type: github
+      repo: fastfetch-cli/fastfetch
+      tag_prefix: ""
+    url_template: "https://github.com/fastfetch-cli/fastfetch/releases/download/{{.Version}}/fastfetch-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: fastfetch
+    os_map:
+      darwin: macos
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: sevenzip
     description: 7-Zip archive tools
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: sevenzip
-        supported_platforms: [darwin]
-      - type: apt
-        doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
-        priority: 70
-        package: 7zip
-        supported_platforms: [linux]
+    binary_name: 7zz
+    doc_url: "https://github.com/ip7z/7zip/releases"
+    version_from:
+      type: github
+      repo: ip7z/7zip
+      tag_prefix: ""
+    url_template: "https://github.com/ip7z/7zip/releases/download/{{.Version}}/{{if eq .OS \"darwin\"}}7z{{.VersionNoV}}-mac.tar.xz{{else}}7z{{.VersionNoV}}-linux-{{if eq .Arch \"arm64\"}}arm64{{else}}x64{{end}}.tar.xz{{end}}"
+    inner_path: 7zz
+    supported_platforms: [linux, darwin]
 
   - name: argon2
     description: password hashing utility
@@ -1342,21 +1413,37 @@ packages:
 
   - name: act
     description: run GitHub Actions locally
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: act
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/nektos/act/releases"
+    version_from:
+      type: github
+      repo: nektos/act
+      tag_prefix: "v"
+    url_template: "https://github.com/nektos/act/releases/download/{{.Version}}/act_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: act
+    os_map:
+      darwin: Darwin
+      linux: Linux
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: autocorrect
     description: CJK copywriting linter and formatter
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: autocorrect
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/huacnlee/autocorrect/releases"
+    version_from:
+      type: github
+      repo: huacnlee/autocorrect
+      tag_prefix: "v"
+    url_template: "https://github.com/huacnlee/autocorrect/releases/download/{{.Version}}/autocorrect-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: autocorrect
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: bash
     description: GNU Bourne Again shell
@@ -1369,12 +1456,20 @@ packages:
 
   - name: bat
     description: cat clone with syntax highlighting
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: bat
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/sharkdp/bat/releases"
+    version_from:
+      type: github
+      repo: sharkdp/bat
+      tag_prefix: "v"
+    url_template: "https://github.com/sharkdp/bat/releases/download/{{.Version}}/bat-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "bat-{{.Version}}-{{.Arch}}-{{.OS}}/bat"
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: bat-extras
     description: command-line utilities built around bat
@@ -1405,21 +1500,48 @@ packages:
 
   - name: chart-testing
     description: Helm chart testing and linting tools
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: chart-testing
-        supported_platforms: [darwin]
+    binary_name: ct
+    doc_url: "https://github.com/helm/chart-testing/releases"
+    version_from:
+      type: github
+      repo: helm/chart-testing
+      tag_prefix: "v"
+    url_template: "https://github.com/helm/chart-testing/releases/download/{{.Version}}/chart-testing_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: ct
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: cloudflared
     description: Cloudflare Tunnel client
+    doc_url: "https://github.com/cloudflare/cloudflared/releases"
+    version_from:
+      type: github
+      repo: cloudflare/cloudflared
+      tag_prefix: ""
     methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: cloudflared
+      - type: binary
+        url_template: "https://github.com/cloudflare/cloudflared/releases/download/{{.Version}}/cloudflared-{{.OS}}-{{.Arch}}.tgz"
+        inner_path: cloudflared
+        os_map:
+          darwin: darwin
+        arch_map:
+          amd64: amd64
+          arm64: arm64
         supported_platforms: [darwin]
+      - type: binary
+        mode: file
+        url_template: "https://github.com/cloudflare/cloudflared/releases/download/{{.Version}}/cloudflared-{{.OS}}-{{.Arch}}"
+        os_map:
+          linux: linux
+        arch_map:
+          amd64: amd64
+          arm64: arm64
+        supported_platforms: [linux]
 
   - name: coreutils
     description: GNU core utilities
@@ -1441,30 +1563,55 @@ packages:
 
   - name: croc
     description: secure file transfer tool
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: croc
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/schollz/croc/releases"
+    version_from:
+      type: github
+      repo: schollz/croc
+      tag_prefix: "v"
+    url_template: "https://github.com/schollz/croc/releases/download/v{{.VersionNoV}}/croc_v{{.VersionNoV}}_{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: croc
+    os_map:
+      darwin: macOS
+      linux: Linux
+    arch_map:
+      amd64: 64bit
+      arm64: ARM64
+    supported_platforms: [linux, darwin]
 
   - name: difftastic
     description: syntax-aware diff tool
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: difftastic
-        supported_platforms: [darwin]
+    binary_name: difft
+    doc_url: "https://github.com/Wilfred/difftastic/releases"
+    version_from:
+      type: github
+      repo: Wilfred/difftastic
+      tag_prefix: ""
+    url_template: "https://github.com/Wilfred/difftastic/releases/download/{{.Version}}/difft-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: difft
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: duckdb
     description: analytical SQL database CLI
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: duckdb
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/duckdb/duckdb/releases"
+    version_from:
+      type: github
+      repo: duckdb/duckdb
+      tag_prefix: "v"
+    url_template: "https://github.com/duckdb/duckdb/releases/download/{{.Version}}/duckdb_cli-{{.OS}}-{{.Arch}}.zip"
+    inner_path: duckdb
+    os_map:
+      darwin: osx
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: e2b
     description: E2B sandbox management CLI
@@ -1477,12 +1624,20 @@ packages:
 
   - name: etcd
     description: distributed key-value store
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: etcd
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/etcd-io/etcd/releases"
+    version_from:
+      type: github
+      repo: etcd-io/etcd
+      tag_prefix: "v"
+    url_template: "https://github.com/etcd-io/etcd/releases/download/{{.Version}}/etcd-{{.Version}}-{{.OS}}-{{.Arch}}{{if eq .OS \"darwin\"}}.zip{{else}}.tar.gz{{end}}"
+    inner_path: "etcd-{{.Version}}-{{.OS}}-{{.Arch}}/etcd"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: fail2ban
     description: intrusion prevention daemon
@@ -1495,12 +1650,27 @@ packages:
 
   - name: fd
     description: fast alternative to find
+    doc_url: "https://github.com/sharkdp/fd/releases"
+    version_from:
+      type: github
+      repo: sharkdp/fd
+      tag_prefix: "v"
     methods:
+      - type: binary
+        url_template: "https://github.com/sharkdp/fd/releases/download/{{.Version}}/fd-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+        inner_path: "fd-{{.Version}}-{{.Arch}}-{{.OS}}/fd"
+        os_map:
+          darwin: apple-darwin
+          linux: unknown-linux-gnu
+        arch_map:
+          amd64: x86_64
+          arm64: aarch64
+        supported_platforms: [darwin/arm64, linux]
       - type: brew
         doc_url: "https://brew.sh/"
         priority: 80
         package: fd
-        supported_platforms: [darwin]
+        supported_platforms: [darwin/amd64]
 
   - name: gawk
     description: GNU awk
@@ -1594,21 +1764,37 @@ packages:
 
   - name: jid
     description: interactive JSON digger
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: jid
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/simeji/jid/releases"
+    version_from:
+      type: github
+      repo: simeji/jid
+      tag_prefix: "v"
+    url_template: "https://github.com/simeji/jid/releases/download/{{.Version}}/jid_{{.OS}}_{{.Arch}}.zip"
+    inner_path: jid
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: jj
     description: Jujutsu version control system
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: jj
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/jj-vcs/jj/releases"
+    version_from:
+      type: github
+      repo: jj-vcs/jj
+      tag_prefix: "v"
+    url_template: "https://github.com/jj-vcs/jj/releases/download/{{.Version}}/jj-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: jj
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-musl
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: jpeg-xl
     description: JPEG XL tools and library
@@ -1621,12 +1807,20 @@ packages:
 
   - name: kind
     description: Kubernetes clusters in Docker
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: kind
-        supported_platforms: [darwin]
+    mode: file
+    doc_url: "https://github.com/kubernetes-sigs/kind/releases"
+    version_from:
+      type: github
+      repo: kubernetes-sigs/kind
+      tag_prefix: "v"
+    url_template: "https://github.com/kubernetes-sigs/kind/releases/download/{{.Version}}/kind-{{.OS}}-{{.Arch}}"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: libadwaita
     description: adaptive GNOME UI library
@@ -1711,21 +1905,34 @@ packages:
 
   - name: resvg
     description: SVG rendering tool
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: resvg
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/linebender/resvg/releases"
+    version_from:
+      type: github
+      repo: linebender/resvg
+      tag_prefix: "v"
+    url_template: "https://github.com/linebender/resvg/releases/download/{{.Version}}/resvg-macos-{{.Arch}}.zip"
+    inner_path: resvg
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [darwin]
 
   - name: ripgrep
     description: fast recursive text search tool
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: ripgrep
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/BurntSushi/ripgrep/releases"
+    version_from:
+      type: github
+      repo: BurntSushi/ripgrep
+      tag_prefix: ""
+    url_template: "https://github.com/BurntSushi/ripgrep/releases/download/{{.Version}}/ripgrep-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "ripgrep-{{.Version}}-{{.Arch}}-{{.OS}}/rg"
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-musl
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: samba
     description: SMB file and print server
@@ -1756,12 +1963,20 @@ packages:
 
   - name: trivy
     description: security scanner for containers and filesystems
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: trivy
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/aquasecurity/trivy/releases"
+    version_from:
+      type: github
+      repo: aquasecurity/trivy
+      tag_prefix: "v"
+    url_template: "https://github.com/aquasecurity/trivy/releases/download/{{.Version}}/trivy_{{.VersionNoV}}_{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: trivy
+    os_map:
+      darwin: macOS
+      linux: Linux
+    arch_map:
+      amd64: 64bit
+      arm64: ARM64
+    supported_platforms: [linux, darwin]
 
   - name: unbound
     description: validating recursive DNS resolver
@@ -1774,30 +1989,54 @@ packages:
 
   - name: websocat
     description: WebSocket command-line client
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: websocat
-        supported_platforms: [darwin]
+    mode: file
+    doc_url: "https://github.com/vi/websocat/releases"
+    version_from:
+      type: github
+      repo: vi/websocat
+      tag_prefix: "v"
+    url_template: "https://github.com/vi/websocat/releases/download/{{.Version}}/websocat.{{.Arch}}-{{.OS}}"
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-musl
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: yq
     description: YAML, JSON, and XML processor
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: yq
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/mikefarah/yq/releases"
+    version_from:
+      type: github
+      repo: mikefarah/yq
+      tag_prefix: "v"
+    url_template: "https://github.com/mikefarah/yq/releases/download/{{.Version}}/yq_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "yq_{{.OS}}_{{.Arch}}"
+    os_map:
+      darwin: darwin
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: zellij
     description: terminal workspace and multiplexer
-    methods:
-      - type: brew
-        doc_url: "https://brew.sh/"
-        priority: 80
-        package: zellij
-        supported_platforms: [darwin]
+    doc_url: "https://github.com/zellij-org/zellij/releases"
+    version_from:
+      type: github
+      repo: zellij-org/zellij
+      tag_prefix: "v"
+    url_template: "https://github.com/zellij-org/zellij/releases/download/{{.Version}}/zellij-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: zellij
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-musl
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: angular-cli
     description: Angular CLI
@@ -1953,12 +2192,20 @@ packages:
 
   - name: splitrail
     description: coding agent token usage and cost monitor
-    methods:
-      - type: brew
-        doc_url: "https://formulae.brew.sh/formula/splitrail"
-        priority: 80
-        package: splitrail
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/Piebald-AI/splitrail/releases"
+    version_from:
+      type: github
+      repo: Piebald-AI/splitrail
+      tag_prefix: "v"
+    url_template: "https://github.com/Piebald-AI/splitrail/releases/download/{{.Version}}/splitrail-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: splitrail
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-gnu
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: ada-url
     description: "WHATWG-compliant and fast URL parser written in modern C++"
