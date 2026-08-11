@@ -2198,7 +2198,7 @@ packages:
       repo: Piebald-AI/splitrail
       tag_prefix: "v"
     url_template: "https://github.com/Piebald-AI/splitrail/releases/download/{{.Version}}/splitrail-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
-    inner_path: splitrail
+    inner_path: "splitrail-{{.Version}}-{{.Arch}}-{{.OS}}/splitrail"
     os_map:
       darwin: apple-darwin
       linux: unknown-linux-gnu
