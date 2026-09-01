@@ -46,6 +46,29 @@ packages:
         command: "brew install --cask tailscale-app"
         supported_platforms: [darwin]
 
+  - name: tailcat
+    description: Peer-to-peer netcat over Tailscale's data plane
+    doc_url: "https://github.com/tailscale/tailcat#install"
+    version_from:
+      type: github
+      repo: tailscale/tailcat
+      tag_prefix: "v"
+    methods:
+      - type: binary
+        priority: 90
+        url_template: "https://github.com/tailscale/tailcat/releases/download/{{.Version}}/tailcat_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+        inner_path: tailcat
+        supported_platforms: [linux/amd64, linux/arm64]
+        os_map:
+          linux: linux
+        arch_map:
+          amd64: amd64
+          arm64: arm64
+      - type: brew
+        priority: 80
+        package: tailcat
+        supported_platforms: [darwin]
+
   - name: kubectl
     description: Kubernetes CLI
     doc_url: "https://kubernetes.io/docs/tasks/tools/"
