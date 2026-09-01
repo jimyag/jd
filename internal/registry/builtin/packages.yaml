@@ -292,14 +292,24 @@ packages:
 
   - name: gemini-cli
     description: Google Gemini CLI
+    doc_url: "https://github.com/google-gemini/gemini-cli#installation"
+    version_from:
+      type: github
+      repo: google-gemini/gemini-cli
+      tag_prefix: "v"
     methods:
+      - type: binary
+        priority: 90
+        url_template: "https://github.com/google-gemini/gemini-cli/releases/download/{{.Version}}/gemini-darwin-{{.Arch}}-unsigned.zip"
+        inner_path: gemini
+        arch_map:
+          amd64: x64
+          arm64: arm64
+        supported_platforms: [darwin/amd64, darwin/arm64]
       - type: npm
-        priority: 100
-        doc_url: "https://github.com/google-gemini/gemini-cli/blob/main/README.md"
+        priority: 80
         package: "@google/gemini-cli"
-        supported_platforms:
-          - linux
-          - darwin
+        supported_platforms: [linux]
 
   - name: cursor
     description: Cursor AI code editor
@@ -548,21 +558,41 @@ packages:
 
   - name: pnpm
     description: fast disk space efficient package manager
+    doc_url: "https://github.com/pnpm/pnpm#installation"
+    version_from:
+      type: github
+      repo: pnpm/pnpm
+      tag_prefix: "v"
     methods:
+      - type: binary
+        priority: 90
+        url_template: "https://github.com/pnpm/pnpm/releases/download/{{.Version}}/pnpm-{{.OS}}-{{.Arch}}.tar.gz"
+        inner_path: pnpm
+        arch_map:
+          amd64: x64
+          arm64: arm64
+        supported_platforms: [darwin/arm64, linux/amd64, linux/arm64]
       - type: npm
-        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
         priority: 80
         package: pnpm
-        supported_platforms: [linux, darwin]
+        supported_platforms: [darwin/amd64]
 
   - name: mdbook
     description: create books from Markdown files
-    methods:
-      - type: command
-        doc_url: "https://github.com/jimyag/jd#install-methods"
-        priority: 80
-        command: "cargo install mdbook"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/rust-lang/mdBook#installation"
+    version_from:
+      type: github
+      repo: rust-lang/mdBook
+      tag_prefix: "v"
+    url_template: "https://github.com/rust-lang/mdBook/releases/download/{{.Version}}/mdbook-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: mdbook
+    os_map:
+      darwin: apple-darwin
+      linux: unknown-linux-musl
+    arch_map:
+      amd64: x86_64
+      arm64: aarch64
+    supported_platforms: [linux, darwin]
 
   - name: tokei
     description: code statistics tool
@@ -602,21 +632,25 @@ packages:
 
   - name: gofumpt
     description: stricter gofmt
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "mvdan.cc/gofumpt@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/mvdan/gofumpt#installation"
+    version_from:
+      type: github
+      repo: mvdan/gofumpt
+      tag_prefix: "v"
+    url_template: "https://github.com/mvdan/gofumpt/releases/download/{{.Version}}/gofumpt_{{.Version}}_{{.OS}}_{{.Arch}}"
+    mode: file
+    supported_platforms: [linux, darwin]
 
   - name: staticcheck
     description: advanced Go static analysis
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "honnef.co/go/tools/cmd/staticcheck@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://staticcheck.dev/docs/getting-started/#installation"
+    version_from:
+      type: github
+      repo: dominikh/go-tools
+      tag_prefix: ""
+    url_template: "https://github.com/dominikh/go-tools/releases/download/{{.Version}}/staticcheck_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: staticcheck/staticcheck
+    supported_platforms: [linux, darwin]
 
   - name: nilaway
     description: nil panic checker for Go
@@ -629,12 +663,14 @@ packages:
 
   - name: gosec
     description: Go security checker
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "github.com/securego/gosec/v2/cmd/gosec@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/securego/gosec#install"
+    version_from:
+      type: github
+      repo: securego/gosec
+      tag_prefix: "v"
+    url_template: "https://github.com/securego/gosec/releases/download/{{.Version}}/gosec_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: gosec
+    supported_platforms: [linux, darwin]
 
   - name: deadcode
     description: find unreachable Go code
@@ -701,12 +737,20 @@ packages:
 
   - name: goreleaser
     description: release automation for Go projects
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "github.com/goreleaser/goreleaser/v2@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://goreleaser.com/install/"
+    version_from:
+      type: github
+      repo: goreleaser/goreleaser
+      tag_prefix: "v"
+    url_template: "https://github.com/goreleaser/goreleaser/releases/download/{{.Version}}/goreleaser_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: goreleaser
+    os_map:
+      darwin: Darwin
+      linux: Linux
+    arch_map:
+      amd64: x86_64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: ginkgo
     description: Go testing framework CLI
@@ -746,30 +790,36 @@ packages:
 
   - name: regctl
     description: OCI registry client
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "github.com/regclient/regclient/cmd/regctl@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/regclient/regclient#regctl"
+    version_from:
+      type: github
+      repo: regclient/regclient
+      tag_prefix: "v"
+    url_template: "https://github.com/regclient/regclient/releases/download/{{.Version}}/regctl-{{.OS}}-{{.Arch}}"
+    mode: file
+    supported_platforms: [linux, darwin]
 
   - name: nats
     description: NATS command-line client
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "github.com/nats-io/natscli/nats@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/nats-io/natscli#installation"
+    version_from:
+      type: github
+      repo: nats-io/natscli
+      tag_prefix: "v"
+    url_template: "https://github.com/nats-io/natscli/releases/download/{{.Version}}/nats-{{.VersionNoV}}-{{.OS}}-{{.Arch}}.zip"
+    inner_path: "nats-{{.VersionNoV}}-{{.OS}}-{{.Arch}}/nats"
+    supported_platforms: [linux, darwin]
 
   - name: tfplugindocs
     description: Terraform provider documentation generator
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/hashicorp/terraform-plugin-docs#installation"
+    version_from:
+      type: github
+      repo: hashicorp/terraform-plugin-docs
+      tag_prefix: "v"
+    url_template: "https://github.com/hashicorp/terraform-plugin-docs/releases/download/{{.Version}}/tfplugindocs_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.zip"
+    inner_path: tfplugindocs
+    supported_platforms: [linux, darwin]
 
   - name: asmfmt
     description: Go assembler formatter
@@ -791,12 +841,14 @@ packages:
 
   - name: reflex
     description: run commands when files change
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "github.com/cespare/reflex@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/cespare/reflex#installation"
+    version_from:
+      type: github
+      repo: cespare/reflex
+      tag_prefix: "v"
+    url_template: "https://github.com/cespare/reflex/releases/download/{{.Version}}/reflex_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: "reflex_{{.OS}}_{{.Arch}}/reflex"
+    supported_platforms: [linux, darwin]
 
   - name: bson2json
     description: BSON to JSON converter
@@ -2074,12 +2126,17 @@ packages:
   - name: inshellisense
     description: IDE-style shell autocomplete
     binary_name: is
-    methods:
-      - type: npm
-        doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
-        priority: 80
-        package: "@microsoft/inshellisense"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/microsoft/inshellisense#installation"
+    version_from:
+      type: github
+      repo: microsoft/inshellisense
+      tag_prefix: ""
+    url_template: "https://github.com/microsoft/inshellisense/releases/download/{{.Version}}/microsoft-inshellisense-{{.OS}}-{{.Arch}}-{{.Version}}.tgz"
+    inner_path: "package/inshellisense-{{.OS}}-{{.Arch}}"
+    arch_map:
+      amd64: x64
+      arm64: arm64
+    supported_platforms: [linux, darwin]
 
   - name: pencil
     description: Pencil design CLI
@@ -2138,12 +2195,14 @@ packages:
 
   - name: actionlint
     description: GitHub Actions workflow linter
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "github.com/rhysd/actionlint/cmd/actionlint@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/rhysd/actionlint#installation"
+    version_from:
+      type: github
+      repo: rhysd/actionlint
+      tag_prefix: "v"
+    url_template: "https://github.com/rhysd/actionlint/releases/download/{{.Version}}/actionlint_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: actionlint
+    supported_platforms: [linux, darwin]
 
   - name: formattag
     description: Go struct tag formatter
@@ -2174,21 +2233,25 @@ packages:
 
   - name: qshell
     description: Qiniu command-line client
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "github.com/qiniu/qshell/v2/main@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://github.com/qiniu/qshell#installation"
+    version_from:
+      type: github
+      repo: qiniu/qshell
+      tag_prefix: "v"
+    url_template: "https://github.com/qiniu/qshell/releases/download/{{.Version}}/qshell-{{.Version}}-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: qshell
+    supported_platforms: [linux, darwin]
 
   - name: kubebuilder
     description: Kubernetes API development framework CLI
-    methods:
-      - type: go
-        doc_url: "https://go.dev/ref/mod#go-install"
-        priority: 80
-        package: "sigs.k8s.io/kubebuilder/v4@latest"
-        supported_platforms: [linux, darwin]
+    doc_url: "https://book.kubebuilder.io/quick-start.html#installation"
+    version_from:
+      type: github
+      repo: kubernetes-sigs/kubebuilder
+      tag_prefix: "v"
+    url_template: "https://github.com/kubernetes-sigs/kubebuilder/releases/download/{{.Version}}/kubebuilder_{{.OS}}_{{.Arch}}"
+    mode: file
+    supported_platforms: [linux, darwin]
 
   - name: uv
     description: fast Python package and project manager
