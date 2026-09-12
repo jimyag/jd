@@ -412,6 +412,21 @@ packages:
         package: tmux
         supported_platforms: [linux]
 
+  - name: pktz
+    description: packet capture and analysis tool
+    doc_url: "https://github.com/immanuwell/pktz"
+    version_from:
+      type: github
+      repo: immanuwell/pktz
+    url_template: "https://github.com/immanuwell/pktz/releases/download/{{.Version}}/pktz-{{.OS}}-{{.Arch}}"
+    mode: file
+    supported_platforms: [linux/amd64, linux/arm64]
+    os_map:
+      linux: linux
+    arch_map:
+      amd64: amd64
+      arm64: arm64
+
   - name: hstr
     description: shell history suggest box
     methods:
@@ -2103,15 +2118,15 @@ packages:
       type: github
       repo: zellij-org/zellij
       tag_prefix: "v"
-    url_template: "https://github.com/zellij-org/zellij/releases/download/{{.Version}}/zellij-{{.Arch}}-{{.OS}}.tar.gz"
+    url_template: "https://github.com/zellij-org/zellij/releases/download/{{.Version}}/zellij-{{.Arch}}-{{if eq .OS \"darwin\"}}apple-darwin{{else}}unknown-linux-musl{{end}}.tar.gz"
     inner_path: zellij
     os_map:
-      darwin: apple-darwin
-      linux: unknown-linux-musl
+      darwin: darwin
+      linux: linux
     arch_map:
       amd64: x86_64
       arm64: aarch64
-    supported_platforms: [linux, darwin]
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
 
   - name: angular-cli
     description: Angular CLI

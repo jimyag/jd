@@ -58,6 +58,50 @@ func TestRenderInnerPath(t *testing.T) {
 	}
 }
 
+func TestBuiltinPackageURLs(t *testing.T) {
+	r, err := LoadBuiltin()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name, version, goos, goarch, want string
+	}{
+		{
+			name: "pktz", version: "0.3.0", goos: "linux", goarch: "amd64",
+			want: "https://github.com/immanuwell/pktz/releases/download/0.3.0/pktz-linux-amd64",
+		},
+		{
+			name: "pwru", version: "v1.0.12", goos: "linux", goarch: "amd64",
+			want: "https://github.com/cilium/pwru/releases/download/v1.0.12/pwru-linux-amd64.tar.gz",
+		},
+		{
+			name: "zellij", version: "v0.45.1", goos: "darwin", goarch: "amd64",
+			want: "https://github.com/zellij-org/zellij/releases/download/v0.45.1/zellij-x86_64-apple-darwin.tar.gz",
+		},
+		{
+			name: "zellij", version: "v0.45.1", goos: "linux", goarch: "arm64",
+			want: "https://github.com/zellij-org/zellij/releases/download/v0.45.1/zellij-aarch64-unknown-linux-musl.tar.gz",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name+"/"+tt.goos+"/"+tt.goarch, func(t *testing.T) {
+			pkg, ok := r.Find(tt.name)
+			if !ok {
+				t.Fatalf("package %q not found", tt.name)
+			}
+			got, err := pkg.RenderURL(tt.version, tt.goos, tt.goarch)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got != tt.want {
+				t.Fatalf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestBinaryName_Default(t *testing.T) {
 	entry := PackageEntry{Name: "kubectl"}
 	if entry.GetBinaryName() != "kubectl" {
