@@ -1,6 +1,24 @@
 #!/bin/sh
 set -e
 
+case "${1:-}" in
+  -h|--help|help)
+    cat <<'EOF'
+jd installer
+
+Usage:
+  curl -fsSL https://jd.jimyag.com | sh
+  curl -fsSL https://jd.jimyag.com | sh -s -- gh kubectl
+  curl -fsSL https://jd.jimyag.com | sh -s -- gh@2.80.0
+  curl -fsSL https://jd.jimyag.com | sh -s -- --help
+
+Installs jd to ~/.local/bin, then passes any arguments to jd.
+Set INSTALL_DIR to change the install location.
+EOF
+    exit 0
+    ;;
+esac
+
 # Repository info
 REPO="${REPO:-jimyag/jd}"
 BINARY_NAME="${BINARY_NAME:-jd}"

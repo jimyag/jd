@@ -8,13 +8,16 @@ A CLI tool that installs developer tools from a built-in registry.
 
 Install using curl:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jimyag/jd/main/install.sh | sh
+curl -fsSL https://jd.jimyag.com | sh
 
 # Install jd, then install packages with it
-curl -fsSL https://raw.githubusercontent.com/jimyag/jd/main/install.sh | sh -s -- gh kubectl
+curl -fsSL https://jd.jimyag.com | sh -s -- gh kubectl
 
 # Install jd, then install a specific package version
-curl -fsSL https://raw.githubusercontent.com/jimyag/jd/main/install.sh | sh -s -- gh@2.80.0
+curl -fsSL https://jd.jimyag.com | sh -s -- gh@2.80.0
+
+# Show installer help without installing anything
+curl -fsSL https://jd.jimyag.com | sh -s -- --help
 ```
 
 Or using Go:

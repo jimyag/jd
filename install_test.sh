@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 
+sh "$(dirname "$0")/install.sh" --help | grep -F 'Installs jd to ~/.local/bin, then passes any arguments to jd.' >/dev/null
+
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
