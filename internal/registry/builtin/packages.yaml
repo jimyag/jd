@@ -3812,6 +3812,17 @@ packages:
     inner_path: "kyanos"
     supported_platforms: [linux/amd64, linux/arm64]
 
+  - name: socktrail
+    description: Linux terminal network traffic and process viewer
+    doc_url: "https://github.com/jimyag/socktrail#build-and-run"
+    version_from:
+      type: github
+      repo: jimyag/socktrail
+      tag_prefix: "v"
+    url_template: "https://github.com/jimyag/socktrail/releases/download/{{.Version}}/socktrail_linux_{{.Arch}}"
+    mode: file
+    supported_platforms: [linux/amd64, linux/arm64]
+
   - name: 0xtools
     binary_name: xcapture
     description: Linux performance observability toolkit
