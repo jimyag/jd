@@ -2275,6 +2275,16 @@ packages:
     mode: command
     supported_platforms: [linux, darwin]
 
+  - name: mise
+    description: Development tool and environment manager
+    doc_url: "https://mise.jdx.dev/getting-started"
+    methods:
+      - type: command
+        command: "curl -fsSL https://mise.run | sh"
+        post_commands:
+          - "~/.local/bin/mise --version"
+        supported_platforms: [linux, darwin]
+
   - name: rapid-mlx
     description: MLX inference and benchmarking toolkit
     methods:
