@@ -2,6 +2,9 @@
 
 A CLI tool that installs developer tools from a built-in registry.
 
+[![Check](https://github.com/jimyag/jd/actions/workflows/check.yaml/badge.svg)](https://github.com/jimyag/jd/actions/workflows/check.yaml)
+[![Release](https://github.com/jimyag/jd/actions/workflows/release.yml/badge.svg)](https://github.com/jimyag/jd/actions/workflows/release.yml)
+
 `jd` can install release binaries, run package managers such as Homebrew and APT, and use language installers such as Go and npm.
 
 ## Installation
@@ -236,3 +239,17 @@ For a direct single-file download, set `mode: file`. If the downloaded file is g
 ```
 
 Template variables: `{{.Version}}`, `{{.VersionNoV}}` (without leading `v`), `{{.OS}}`, `{{.Arch}}`, `{{.Name}}`
+
+## Development
+
+Run the Go tests locally:
+
+```bash
+go test ./...
+```
+
+CI also uses golangci-lint to check newly introduced findings.
+
+## Release
+
+Pushing a `v*` tag builds and publishes binaries with GoReleaser. The release notes list commits since the previous tag.

@@ -5,8 +5,7 @@ output: "prefixed"
 vars:
   TOOLS:
     - github.com/go-task/task/v3/cmd/task@latest
-    - mvdan.cc/gofumpt@latest
-    - honnef.co/go/tools/cmd/staticcheck@latest
+    - github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
 tasks:
   deps:
