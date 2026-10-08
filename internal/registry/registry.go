@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jimyag/jd/internal/cnb"
 	"github.com/jimyag/jd/internal/registry/builtin"
 	"gopkg.in/yaml.v3"
 )
@@ -59,7 +61,7 @@ func LoadWithOptions(opts LoadOptions) (*Registry, error) {
 	if !envBool("JD_DISABLE_REMOTE_REGISTRY") {
 		remote, err := loadRemoteRegistry(opts.RefreshRemote)
 		if err != nil {
-			if envBool("JD_REGISTRY_STRICT") {
+			if envBool("JD_REGISTRY_STRICT") || cnb.Enabled() {
 				return nil, err
 			}
 			fmt.Fprintf(os.Stderr, "warning: remote registry unavailable, using bundled registry: %v\n", err)
@@ -100,6 +102,14 @@ func loadRemoteRegistry(refresh bool) (*Registry, error) {
 
 	url := remoteRegistryURL()
 	data, err := fetchRemoteRegistry(url)
+	if err != nil && !cnb.Enabled() && os.Getenv("JD_REGISTRY_URL") == "" {
+		mirrored, mirrorErr := fetchRemoteRegistry(cnb.AssetURL("jimyag/jd", "packages.yaml"))
+		if mirrorErr == nil {
+			data, err = mirrored, nil
+		} else {
+			err = errors.Join(err, mirrorErr)
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -202,6 +212,9 @@ func remoteRegistryURL() string {
 	if url := os.Getenv("JD_REGISTRY_URL"); url != "" {
 		return url
 	}
+	if cnb.Enabled() {
+		return cnb.AssetURL("jimyag/jd", "packages.yaml")
+	}
 	return defaultRemoteRegistryURL
 }
 
@@ -210,7 +223,11 @@ func remoteRegistryCachePath() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("resolve cache dir: %w", err)
 	}
-	return filepath.Join(dir, "jd", "packages.yaml"), nil
+	name := "packages.yaml"
+	if cnb.Enabled() {
+		name = "packages-cnb.yaml"
+	}
+	return filepath.Join(dir, "jd", name), nil
 }
 
 func envBool(name string) bool {

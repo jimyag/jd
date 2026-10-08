@@ -1,15 +1,66 @@
 package registry
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/jimyag/jd/internal/registry/builtin"
 )
+
+type mirrorTransport func(*http.Request) (*http.Response, error)
+
+func (f mirrorTransport) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+
+func TestRegistryCNBSourceAndAutomaticRetry(t *testing.T) {
+	for _, source := range []string{"", "cnb", "missing"} {
+		t.Run(source, func(t *testing.T) {
+			t.Setenv("HOME", t.TempDir())
+			t.Setenv("XDG_CACHE_HOME", t.TempDir())
+			t.Setenv("JD_REGISTRY_URL", "")
+			t.Setenv("JD_DISABLE_REMOTE_REGISTRY", "")
+			t.Setenv("JD_DOWNLOAD_SOURCE", source)
+			if source == "missing" {
+				t.Setenv("JD_DOWNLOAD_SOURCE", "cnb")
+			}
+			original := http.DefaultClient
+			t.Cleanup(func() { http.DefaultClient = original })
+			http.DefaultClient = &http.Client{Transport: mirrorTransport(func(r *http.Request) (*http.Response, error) {
+				status, body := http.StatusOK, "packages:\n  - name: mirror-test\n    mode: command\n    command: echo mirror\n"
+				if r.URL.Host == "raw.githubusercontent.com" {
+					if source != "" {
+						t.Fatal("strict CNB contacted GitHub")
+					}
+					status = http.StatusServiceUnavailable
+				} else if r.URL.Host != "cnb.cool" {
+					t.Fatalf("unexpected host %s", r.URL.Host)
+				}
+				if source == "missing" {
+					status = http.StatusNotFound
+				}
+				return &http.Response{StatusCode: status, Status: http.StatusText(status), Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header)}, nil
+			})}
+			r, err := LoadWithOptions(LoadOptions{RefreshRemote: true})
+			if source == "missing" {
+				if err == nil {
+					t.Fatal("must not fall back to bundled registry in CNB mode")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, ok := r.Find("mirror-test"); !ok {
+				t.Fatal("mirror registry not applied")
+			}
+		})
+	}
+}
 
 func TestLoadBuiltin(t *testing.T) {
 	r, err := LoadBuiltin()

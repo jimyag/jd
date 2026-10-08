@@ -12,9 +12,11 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	getter "github.com/hashicorp/go-getter/v2"
 
+	"github.com/jimyag/jd/internal/cnb"
 	"github.com/jimyag/jd/internal/registry"
 	"github.com/jimyag/jd/internal/versioner"
 )
@@ -52,7 +54,13 @@ func InstallWithOptions(ctx context.Context, entry *registry.PackageEntry, versi
 
 	var errs []error
 	for _, method := range methods {
+		if cnb.Enabled() && method.Type != "binary" {
+			continue
+		}
 		if err := installMethod(ctx, entry, &method, version, goos, goarch); err != nil {
+			if cnb.Enabled() || errors.Is(err, cnb.ErrUnavailable) {
+				return formatMethodError(method, err)
+			}
 			errs = append(errs, formatMethodError(method, err))
 			continue
 		}
@@ -60,6 +68,9 @@ func InstallWithOptions(ctx context.Context, entry *registry.PackageEntry, versi
 	}
 
 	if len(errs) == 0 {
+		if cnb.Enabled() {
+			return fmt.Errorf("CNB has no binary installation method for %s on %s/%s", entry.Name, goos, goarch)
+		}
 		return fmt.Errorf("%s does not support %s/%s", entry.Name, goos, goarch)
 	}
 	return errors.Join(errs...)
@@ -82,7 +93,23 @@ func installMethod(ctx context.Context, entry *registry.PackageEntry, method *re
 		return runCommand(ctx, entry, method, version, goos, goarch)
 	}
 
-	version, err := resolveVersion(method, version)
+	var err error
+	if cnb.Enabled() {
+		repo := cnb.GitHubRepo(method.URLTemplate)
+		if repo == "" {
+			return fmt.Errorf("CNB does not mirror the binary source for %s", entry.Name)
+		}
+		latest, fetchErr := cnb.Latest(ctx, repo)
+		if fetchErr != nil {
+			return fetchErr
+		}
+		if version != "" && strings.TrimPrefix(version, "v") != strings.TrimPrefix(latest, "v") {
+			return fmt.Errorf("CNB only mirrors %s@%s; requested %s", entry.Name, latest, version)
+		}
+		version = latest
+	} else {
+		version, err = resolveVersion(method, version)
+	}
 	if err != nil {
 		return err
 	}
@@ -91,6 +118,12 @@ func installMethod(ctx context.Context, entry *registry.PackageEntry, method *re
 	url, err := method.RenderURL(entry.Name, version, goos, goarch)
 	if err != nil {
 		return fmt.Errorf("render URL: %w", err)
+	}
+	if cnb.Enabled() {
+		url, err = cnb.DownloadURL(ctx, url, version)
+		if err != nil {
+			return err
+		}
 	}
 
 	fmt.Printf("  downloading %s\n", url)
@@ -117,8 +150,28 @@ func installMethod(ctx context.Context, entry *registry.PackageEntry, method *re
 	}
 
 	client := &getter.Client{}
-	if _, err := client.Get(ctx, req); err != nil {
-		return fmt.Errorf("download %s: %w", url, err)
+	download := func() error {
+		downloadCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+		defer cancel()
+		_, err := client.Get(downloadCtx, req)
+		return err
+	}
+	if err := download(); err != nil {
+		if cnb.Enabled() || cnb.GitHubRepo(url) == "" {
+			return fmt.Errorf("download %s: %w", url, err)
+		}
+		mirrorURL, mirrorErr := cnb.DownloadURL(ctx, url, version)
+		if mirrorErr != nil {
+			return errors.Join(fmt.Errorf("download %s: %w", url, err), mirrorErr)
+		}
+		if err := os.RemoveAll(dst); err != nil {
+			return err
+		}
+		fmt.Printf("  retrying download from CNB: %s\n", mirrorURL)
+		req.Src = mirrorURL
+		if mirrorErr := download(); mirrorErr != nil {
+			return errors.Join(fmt.Errorf("download %s: %w", url, err), fmt.Errorf("%w: download %s: %w", cnb.ErrUnavailable, mirrorURL, mirrorErr))
+		}
 	}
 	if method.Mode == "file" {
 		if err := decompressGzipFileIfNeeded(dst); err != nil {

@@ -20,6 +20,7 @@ var (
 	rootComplete        string
 	rootMethod          string
 	rootRefreshRegistry bool
+	rootCNB             bool
 )
 
 var (
@@ -58,6 +59,19 @@ var rootCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if rootCNB {
+			previous, present := os.LookupEnv("JD_DOWNLOAD_SOURCE")
+			if err := os.Setenv("JD_DOWNLOAD_SOURCE", "cnb"); err != nil {
+				return err
+			}
+			defer func() {
+				if present {
+					_ = os.Setenv("JD_DOWNLOAD_SOURCE", previous)
+				} else {
+					_ = os.Unsetenv("JD_DOWNLOAD_SOURCE")
+				}
+			}()
+		}
 		if rootComplete != "" {
 			return runComplete(cmd, rootComplete)
 		}
@@ -95,6 +109,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	rootCmd.Flags().BoolVar(&rootCNB, "cnb", false, "Use only the latest GitHub binaries mirrored on CNB")
 	rootCmd.Flags().BoolVar(&rootListVersions, "list", false, "List all packages or package versions")
 	rootCmd.Flags().BoolVar(&rootListAllVersions, "list-all", false, "List all available versions for a package")
 	rootCmd.Flags().StringVar(&rootComplete, "complete", "", "Generate shell completion script (bash, zsh, fish, powershell)")

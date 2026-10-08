@@ -19,6 +19,9 @@ curl -fsSL https://jd.jimyag.com | sh -s -- gh kubectl
 # Install jd, then install a specific package version
 curl -fsSL https://jd.jimyag.com | sh -s -- gh@2.80.0
 
+# Install jd and a GitHub release binary using only the CNB mirror
+curl -fsSL https://jd.jimyag.com | sh -s -- --cnb zellij
+
 # Show installer help without installing anything
 curl -fsSL https://jd.jimyag.com | sh -s -- --help
 ```
@@ -36,6 +39,9 @@ jd <package>
 
 # Install a specific version when the selected method supports versions
 jd <package>@<version>
+
+# Use only the latest GitHub release binary mirrored on CNB
+jd --cnb zellij
 
 # Force a specific install method
 jd <package> --method binary
@@ -87,6 +93,17 @@ Load order is:
 If the same package name appears in different registry files, the later file replaces the earlier one. A single YAML file cannot define the same package name twice.
 
 The remote registry is cached for 30 minutes in the system cache directory. If the remote registry is unavailable, `jd` falls back to the bundled registry and still applies local overrides. Use `--refresh-registry` or `JD_REFRESH_REMOTE_REGISTRY=1` to force a remote refresh. Set `JD_DISABLE_REMOTE_REGISTRY=1` to use only the bundled and local registries.
+
+By default, jd tries CNB when GitHub registry, latest-version, or binary download
+requests fail. A binary download retry requires CNB to mirror the same version.
+The installer script also retries CNB when downloading jd itself fails.
+
+Use `--cnb` or `JD_DOWNLOAD_SOURCE=cnb` to require CNB for the registry and GitHub
+release binaries. CNB keeps only the latest release per upstream repository.
+Missing releases, assets, older pinned versions, and packages without a mirrored
+GitHub binary return an error; this mode does not fall back to GitHub or package
+managers. `install.sh --cnb` applies this mode to the packages it installs; use
+`jd --cnb` or the environment variable for subsequent invocations.
 
 Example local registry:
 ```yaml
@@ -146,6 +163,7 @@ Version pins:
 | Variable | Description |
 |----------|-------------|
 | `GITHUB_TOKEN` | GitHub personal access token to avoid rate limiting when resolving versions |
+| `JD_DOWNLOAD_SOURCE` | Set to `cnb` to require the latest GitHub binaries mirrored on CNB. |
 | `JD_REGISTRY_URL` | Remote registry YAML URL. Defaults to the `main` branch built-in registry file. |
 | `JD_REFRESH_REMOTE_REGISTRY` | Set to `1` to skip the 30-minute remote registry cache. |
 | `JD_DISABLE_REMOTE_REGISTRY` | Set to `1` to disable remote registry loading. |

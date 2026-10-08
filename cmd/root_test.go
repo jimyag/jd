@@ -83,3 +83,30 @@ packages:
 		t.Fatalf("got package %q", gotName)
 	}
 }
+
+func TestCNBFlagAppliesToRegistryAndInstaller(t *testing.T) {
+	originalInstaller, originalLoader, originalCNB := installPackage, loadRegistry, rootCNB
+	t.Cleanup(func() {
+		installPackage, loadRegistry, rootCNB = originalInstaller, originalLoader, originalCNB
+	})
+	t.Setenv("JD_DOWNLOAD_SOURCE", "github")
+	rootCNB = true
+	loadRegistry = func() (*registry.Registry, error) {
+		if os.Getenv("JD_DOWNLOAD_SOURCE") != "cnb" {
+			t.Fatal("registry must use CNB")
+		}
+		return registry.LoadBuiltin()
+	}
+	installPackage = func(_ context.Context, _ *registry.PackageEntry, _ string, _ installer.InstallOptions) error {
+		if os.Getenv("JD_DOWNLOAD_SOURCE") != "cnb" {
+			t.Fatal("installer must use CNB")
+		}
+		return nil
+	}
+	if err := rootCmd.RunE(rootCmd, []string{"zellij"}); err != nil {
+		t.Fatal(err)
+	}
+	if os.Getenv("JD_DOWNLOAD_SOURCE") != "github" {
+		t.Fatal("source leaked after command")
+	}
+}
