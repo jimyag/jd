@@ -18,7 +18,7 @@ url= output=
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -o) output="$2"; shift 2 ;;
-  --connect-timeout | --max-time) shift 2 ;;
+  --connect-timeout | --max-time | --retry) shift 2 ;;
   https://*) url="$1"; shift ;;
   *) shift ;;
   esac

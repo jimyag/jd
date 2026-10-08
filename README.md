@@ -96,7 +96,9 @@ The remote registry is cached for 30 minutes in the system cache directory. If t
 
 By default, jd tries CNB when GitHub registry, latest-version, or binary download
 requests fail. A binary download retry requires CNB to mirror the same version.
-The installer script also retries CNB when downloading jd itself fails.
+The installer script also retries CNB when downloading jd itself fails. Installer
+requests allow 30 seconds to connect and retry failures twice. Version lookups
+allow 60 seconds per attempt, and binary downloads allow 120 seconds per attempt.
 
 Use `--cnb` or `JD_DOWNLOAD_SOURCE=cnb` to require CNB for the registry and GitHub
 release binaries. CNB keeps only the latest release per upstream repository.

@@ -50,7 +50,7 @@ main() {
 
   if [ "$SOURCE" = github ]; then
     echo "Fetching latest version for ${REPO}..."
-    LATEST_TAG=$(curl -fsSL --connect-timeout 5 --max-time 15 "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    LATEST_TAG=$(curl -fsSL --connect-timeout 30 --max-time 60 --retry 2 --retry-all-errors "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     if [ -z "$LATEST_TAG" ]; then
       echo "GitHub version lookup failed; trying CNB..." >&2
       SOURCE=cnb
@@ -69,16 +69,16 @@ main() {
   trap 'rm -f "$TMP_FILE"' EXIT
   trap 'exit 1' HUP INT TERM
   echo "Downloading ${LATEST_TAG} from ${DOWNLOAD_URL}..."
-  if ! curl -fsSL --connect-timeout 5 --max-time 120 "${DOWNLOAD_URL}" -o "${TMP_FILE}"; then
+  if ! curl -fsSL --connect-timeout 30 --max-time 120 --retry 2 --retry-all-errors "${DOWNLOAD_URL}" -o "${TMP_FILE}"; then
     if [ "$SOURCE" = cnb ]; then
-      echo "CNB binary unavailable for ${REPO} (${OS}/${ARCH})." >&2
+      echo "Failed to download CNB binary for ${REPO} (${OS}/${ARCH}); see curl error above." >&2
       exit 1
     fi
     echo "GitHub download failed; trying CNB..." >&2
     SOURCE=cnb
     fetch_cnb_version
     set_download_url
-    curl -fsSL --connect-timeout 5 --max-time 120 "${DOWNLOAD_URL}" -o "${TMP_FILE}"
+    curl -fsSL --connect-timeout 30 --max-time 120 --retry 2 --retry-all-errors "${DOWNLOAD_URL}" -o "${TMP_FILE}"
   fi
 
   # Install
@@ -111,8 +111,8 @@ main() {
 }
 
 fetch_cnb_version() {
-  LATEST_TAG=$(curl -fsSL --connect-timeout 5 --max-time 15 "${CNB_BASE}/upstream-version.txt") || {
-    echo "CNB latest release unavailable for ${REPO}." >&2
+  LATEST_TAG=$(curl -fsSL --connect-timeout 30 --max-time 60 --retry 2 --retry-all-errors "${CNB_BASE}/upstream-version.txt") || {
+    echo "Failed to fetch CNB latest version for ${REPO}; see curl error above." >&2
     exit 1
   }
   case "$LATEST_TAG" in
