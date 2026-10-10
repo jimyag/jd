@@ -3822,6 +3822,17 @@ packages:
     inner_path: "kyanos"
     supported_platforms: [linux/amd64, linux/arm64]
 
+  - name: oci2vm
+    description: Build bootable virtual machine images from container images
+    doc_url: "https://github.com/jimyag/oci2vm#readme"
+    version_from:
+      type: github
+      repo: jimyag/oci2vm
+      tag_prefix: "v"
+    url_template: "https://github.com/jimyag/oci2vm/releases/download/{{.Version}}/oci2vm_{{.OS}}_{{.Arch}}"
+    mode: file
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
   - name: socktrail
     description: Linux terminal network traffic and process viewer
     doc_url: "https://github.com/jimyag/socktrail#build-and-run"

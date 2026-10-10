@@ -68,6 +68,22 @@ func TestBuiltinPackageURLs(t *testing.T) {
 		name, version, goos, goarch, want string
 	}{
 		{
+			name: "oci2vm", version: "v0.1.0", goos: "darwin", goarch: "amd64",
+			want: "https://github.com/jimyag/oci2vm/releases/download/v0.1.0/oci2vm_darwin_amd64",
+		},
+		{
+			name: "oci2vm", version: "v0.1.0", goos: "darwin", goarch: "arm64",
+			want: "https://github.com/jimyag/oci2vm/releases/download/v0.1.0/oci2vm_darwin_arm64",
+		},
+		{
+			name: "oci2vm", version: "v0.1.0", goos: "linux", goarch: "amd64",
+			want: "https://github.com/jimyag/oci2vm/releases/download/v0.1.0/oci2vm_linux_amd64",
+		},
+		{
+			name: "oci2vm", version: "v0.1.0", goos: "linux", goarch: "arm64",
+			want: "https://github.com/jimyag/oci2vm/releases/download/v0.1.0/oci2vm_linux_arm64",
+		},
+		{
 			name: "pktz", version: "0.3.0", goos: "linux", goarch: "amd64",
 			want: "https://github.com/immanuwell/pktz/releases/download/0.3.0/pktz-linux-amd64",
 		},
