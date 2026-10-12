@@ -259,8 +259,13 @@ packages:
   - name: golangci-lint
     description: Go linters aggregator
     doc_url: "https://golangci-lint.run/welcome/install/"
-    command: "bash -c \"$(curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh)\" -- -b $(go env GOPATH)/bin"
-    mode: command
+    version_from:
+      type: github
+      repo: golangci/golangci-lint
+      tag_prefix: "v"
+    version_prefix: "v"
+    url_template: "https://github.com/golangci/golangci-lint/releases/download/{{.Version}}/golangci-lint-{{.VersionNoV}}-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "golangci-lint-{{.VersionNoV}}-{{.OS}}-{{.Arch}}/golangci-lint"
     supported_platforms:
       - linux
       - darwin
