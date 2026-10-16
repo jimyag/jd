@@ -14,10 +14,11 @@ EOF
 cat > "$TMP_DIR/mock/curl" <<'EOF'
 #!/bin/sh
 set -eu
-url= output=
+url= output= header=
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -o) output="$2"; shift 2 ;;
+  -H) header="$2"; shift 2 ;;
   --connect-timeout | --max-time | --retry) shift 2 ;;
   https://*) url="$1"; shift ;;
   *) shift ;;
@@ -26,6 +27,7 @@ done
 printf '%s\n' "$url" >> "$URLS_FILE"
 case "$url" in
 https://api.github.com/*)
+  test "$header" = "$EXPECTED_API_HEADER"
   [ "$TEST_MODE" != github-api-failure ] || exit 22
   printf '{"tag_name": "v1.2.3"}\n'
   ;;
@@ -34,6 +36,7 @@ https://api.github.com/*)
   printf 'v1.2.3\n'
   ;;
 *)
+  test -z "$header"
   if [ "$TEST_MODE" = github-download-failure ]; then
     case "$url" in https://github.com/*) exit 22 ;; esac
   fi
@@ -48,6 +51,8 @@ EOF
 chmod +x "$TMP_DIR/mock/uname" "$TMP_DIR/mock/curl"
 export PATH="$TMP_DIR/mock:$PATH"
 export JD_DOWNLOAD_SOURCE=github
+export GITHUB_TOKEN= GH_TOKEN=
+export EXPECTED_API_HEADER='Accept: application/vnd.github+json'
 
 sh "$SCRIPT" --cnb --help | grep -F 'Use --cnb' >/dev/null
 test ! -e "$URLS_FILE"
@@ -63,6 +68,12 @@ run_install() {
 run_install success gh kubectl@1.32.0
 test "$(cat "$CALLS_FILE")" = "$(printf 'github|--version\ngithub|gh kubectl@1.32.0')"
 grep -F 'https://github.com/jimyag/jd/releases/download/v1.2.3/jd_1.2.3_linux_amd64' "$URLS_FILE" >/dev/null
+
+export GH_TOKEN=gh-test-token EXPECTED_API_HEADER='Authorization: Bearer gh-test-token'
+run_install success
+export GITHUB_TOKEN=github-test-token EXPECTED_API_HEADER='Authorization: Bearer github-test-token'
+run_install success
+export GITHUB_TOKEN= GH_TOKEN= EXPECTED_API_HEADER='Accept: application/vnd.github+json'
 
 for mode in success github-api-failure github-download-failure; do
   if [ "$mode" = success ]; then

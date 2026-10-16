@@ -50,7 +50,11 @@ main() {
 
   if [ "$SOURCE" = github ]; then
     echo "Fetching latest version for ${REPO}..."
-    LATEST_TAG=$(curl -fsSL --connect-timeout 30 --max-time 60 --retry 2 --retry-all-errors "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    API_HEADER="Accept: application/vnd.github+json"
+    if [ -n "${GITHUB_TOKEN:-${GH_TOKEN:-}}" ]; then
+      API_HEADER="Authorization: Bearer ${GITHUB_TOKEN:-${GH_TOKEN:-}}"
+    fi
+    LATEST_TAG=$(curl -fsSL --connect-timeout 30 --max-time 60 --retry 2 --retry-all-errors -H "$API_HEADER" "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     if [ -z "$LATEST_TAG" ]; then
       echo "GitHub version lookup failed; trying CNB..." >&2
       SOURCE=cnb
