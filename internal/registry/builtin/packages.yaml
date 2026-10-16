@@ -35,10 +35,10 @@ packages:
   - name: tailscale
     description: VPN mesh network
     methods:
-      - type: command
+      - type: script
         doc_url: "https://tailscale.com/download/linux"
         priority: 80
-        command: "bash -c \"$(curl -fsSL https://tailscale.com/install.sh)\""
+        url_template: "https://tailscale.com/install.sh"
         supported_platforms: [linux]
       - type: command
         doc_url: "https://tailscale.com/download/mac"
@@ -219,8 +219,9 @@ packages:
   - name: task
     description: Task runner / build tool (Taskfile)
     doc_url: "https://taskfile.dev/installation/"
-    command: "bash -c \"$(curl -fsSL https://taskfile.dev/install.sh)\""
-    mode: command
+    version_from: {type: github, repo: go-task/task, tag_prefix: v}
+    url_template: "https://github.com/go-task/task/releases/download/{{.Version}}/task_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: task
     supported_platforms:
       - linux
       - darwin
@@ -248,13 +249,15 @@ packages:
       type: github
       repo: gohugoio/hugo
       tag_prefix: "v"
-    url_template: "https://github.com/gohugoio/hugo/releases/download/{{.Version}}/hugo_extended_{{.VersionNoV}}_linux-{{.Arch}}.tar.gz"
-    inner_path: "hugo"
-    supported_platforms:
-      - linux
-    arch_map:
-      amd64: amd64
-      arm64: arm64
+    methods:
+      - type: binary
+        mode: pkg
+        url_template: "https://github.com/gohugoio/hugo/releases/download/{{.Version}}/hugo_extended_{{.VersionNoV}}_darwin-universal.pkg"
+        supported_platforms: [darwin]
+      - type: binary
+        url_template: "https://github.com/gohugoio/hugo/releases/download/{{.Version}}/hugo_extended_{{.VersionNoV}}_linux-{{.Arch}}.tar.gz"
+        inner_path: hugo
+        supported_platforms: [linux]
 
   - name: golangci-lint
     description: Go linters aggregator
@@ -272,9 +275,13 @@ packages:
 
   - name: claude-code
     description: Claude Code CLI by Anthropic
+    binary_name: claude
     doc_url: "https://docs.anthropic.com/en/docs/claude-code/quickstart"
-    command: "bash -c \"$(curl -fsSL https://claude.ai/install.sh)\""
-    mode: command
+    methods:
+      - type: script
+        url_template: "https://claude.ai/install.sh"
+        script_args: ["{{if .Version}}{{.Version}}{{else}}latest{{end}}"]
+        version_command: '"$HOME/.local/bin/claude" --version'
     supported_platforms:
       - linux
       - darwin
@@ -286,6 +293,7 @@ packages:
       type: github
       repo: openai/codex
       tag_prefix: "rust-v"
+    version_prefix: rust-v
     url_template: "https://github.com/openai/codex/releases/download/{{.Version}}/codex-{{.Arch}}-{{.OS}}.tar.gz"
     inner_path: "codex-{{.Arch}}-{{.OS}}"
     os_map:
@@ -295,8 +303,20 @@ packages:
       amd64: x86_64
       arm64: aarch64
 
+  - name: codex-code-mode-host
+    description: Codex code mode helper
+    doc_url: https://github.com/openai/codex
+    version_from: {type: github, repo: openai/codex, tag_prefix: rust-v}
+    version_prefix: rust-v
+    url_template: "https://github.com/openai/codex/releases/download/{{.Version}}/codex-code-mode-host-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "codex-code-mode-host-{{.Arch}}-{{.OS}}"
+    os_map: {darwin: apple-darwin, linux: unknown-linux-musl}
+    arch_map: {amd64: x86_64, arm64: aarch64}
+    supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
+
   - name: gemini-cli
     description: Google Gemini CLI
+    binary_name: gemini
     doc_url: "https://github.com/google-gemini/gemini-cli#installation"
     version_from:
       type: github
@@ -307,6 +327,8 @@ packages:
         priority: 90
         url_template: "https://github.com/google-gemini/gemini-cli/releases/download/{{.Version}}/gemini-darwin-{{.Arch}}-unsigned.zip"
         inner_path: gemini
+        # Unsigned Mach-O executables need an ad-hoc signature on Apple Silicon.
+        post_commands: ['codesign --force --sign - "$HOME/.local/bin/gemini"']
         arch_map:
           amd64: x64
           arm64: arm64
@@ -314,13 +336,16 @@ packages:
       - type: npm
         priority: 80
         package: "@google/gemini-cli"
-        supported_platforms: [linux]
+        supported_platforms: [linux, darwin]
 
   - name: cursor
-    description: Cursor AI code editor
-    doc_url: "https://cursor.com/download"
-    command: "bash -c \"$(curl -fsSL https://cursor.com/install)\""
-    mode: command
+    description: Cursor Agent CLI
+    binary_name: cursor-agent
+    doc_url: "https://cursor.com/docs/cli/installation"
+    methods:
+      - type: script
+        url_template: "https://cursor.com/install"
+        version_command: '"$HOME/.local/bin/cursor-agent" --version'
     supported_platforms:
       - linux
       - darwin
@@ -402,6 +427,10 @@ packages:
         priority: 70
         package: zsh
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: zsh
+        supported_platforms: [linux]
 
   - name: tmux
     description: terminal multiplexer
@@ -414,6 +443,10 @@ packages:
       - type: apt
         doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
         priority: 70
+        package: tmux
+        supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
         package: tmux
         supported_platforms: [linux]
 
@@ -488,6 +521,9 @@ packages:
       repo: sxyazi/yazi
       tag_prefix: "v"
     url_template: "https://github.com/sxyazi/yazi/releases/download/v{{.VersionNoV}}/yazi-{{.Arch}}-{{.OS}}.zip"
+    inner_path: "yazi-{{.Arch}}-{{.OS}}"
+    install_dir: "~/.local/share/jd/installs/yazi/{{.Version}}"
+    binaries: {yazi: yazi, ya: ya}
     os_map:
       darwin: apple-darwin
       linux: unknown-linux-gnu
@@ -509,10 +545,22 @@ packages:
         priority: 70
         package: tree
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: tree
+        supported_platforms: [linux]
 
   - name: tldr
     description: simplified command examples
+    doc_url: https://github.com/tldr-pages/tlrc
+    version_from: {type: github, repo: tldr-pages/tlrc, tag_prefix: v}
     methods:
+      - type: binary
+        url_template: "https://github.com/tldr-pages/tlrc/releases/download/{{.Version}}/tlrc-{{.Version}}-{{.Arch}}-{{.OS}}.tar.gz"
+        inner_path: tldr
+        os_map: {darwin: apple-darwin, linux: unknown-linux-musl}
+        arch_map: {amd64: x86_64, arm64: aarch64}
+        supported_platforms: [linux, darwin]
       - type: brew
         doc_url: "https://brew.sh/"
         priority: 80
@@ -533,7 +581,9 @@ packages:
       repo: neovim/neovim
       tag_prefix: "v"
     url_template: "https://github.com/neovim/neovim/releases/download/{{.Version}}/nvim-{{.OS}}-{{.Arch}}.tar.gz"
-    inner_path: "nvim-{{.OS}}-{{.Arch}}/bin/nvim"
+    inner_path: "nvim-{{.OS}}-{{.Arch}}"
+    install_dir: "~/.local/share/jd/installs/neovim/{{.Version}}"
+    binaries: {nvim: bin/nvim}
     os_map:
       darwin: macos
       linux: linux
@@ -553,6 +603,10 @@ packages:
       - type: apt
         doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
         priority: 70
+        package: vim
+        supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
         package: vim
         supported_platforms: [linux]
 
@@ -591,7 +645,7 @@ packages:
         arch_map:
           amd64: x64
           arm64: arm64
-        supported_platforms: [darwin/arm64, linux/amd64, linux/arm64]
+        supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
       - type: npm
         priority: 80
         package: pnpm
@@ -617,6 +671,10 @@ packages:
   - name: tokei
     description: code statistics tool
     methods:
+      - type: brew
+        doc_url: https://formulae.brew.sh/formula/tokei
+        package: tokei
+        supported_platforms: [darwin]
       - type: command
         doc_url: "https://github.com/jimyag/jd#install-methods"
         priority: 80
@@ -892,6 +950,10 @@ packages:
         priority: 70
         package: git
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: git
+        supported_platforms: [linux]
 
   - name: git-lfs
     description: Git large file storage
@@ -963,6 +1025,10 @@ packages:
         priority: 70
         package: pre-commit
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: pre-commit
+        supported_platforms: [linux]
 
   - name: tig
     description: text-mode interface for Git
@@ -977,6 +1043,10 @@ packages:
         priority: 70
         package: tig
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: tig
+        supported_platforms: [linux]
 
   - name: cmake
     description: build system generator
@@ -986,7 +1056,9 @@ packages:
       repo: Kitware/CMake
       tag_prefix: "v"
     url_template: "https://github.com/Kitware/CMake/releases/download/{{.Version}}/cmake-{{.VersionNoV}}-{{if eq .OS \"darwin\"}}macos-universal{{else}}linux-{{.Arch}}{{end}}.tar.gz"
-    inner_path: "cmake-{{.VersionNoV}}-{{if eq .OS \"darwin\"}}macos-universal/CMake.app/Contents/bin/cmake{{else}}linux-{{.Arch}}/bin/cmake{{end}}"
+    inner_path: "cmake-{{.VersionNoV}}-{{if eq .OS \"darwin\"}}macos-universal/CMake.app/Contents{{else}}linux-{{.Arch}}{{end}}"
+    install_dir: "~/.local/share/jd/installs/cmake/{{.Version}}"
+    binaries: {cmake: bin/cmake, ctest: bin/ctest, cpack: bin/cpack}
     arch_map:
       amd64: x86_64
       arm64: aarch64
@@ -1012,7 +1084,9 @@ packages:
       repo: protocolbuffers/protobuf
       tag_prefix: "v"
     url_template: "https://github.com/protocolbuffers/protobuf/releases/download/{{.Version}}/protoc-{{.VersionNoV}}-{{if eq .OS \"darwin\"}}osx-{{if eq .Arch \"arm64\"}}aarch_64{{else}}x86_64{{end}}{{else}}linux-{{if eq .Arch \"arm64\"}}aarch_64{{else}}x86_64{{end}}{{end}}.zip"
-    inner_path: bin/protoc
+    inner_path: .
+    install_dir: "~/.local/share/jd/installs/protobuf/{{.Version}}"
+    binaries: {protoc: bin/protoc}
     supported_platforms: [linux, darwin]
 
   - name: shellcheck
@@ -1079,6 +1153,10 @@ packages:
         priority: 70
         package: curl
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: curl
+        supported_platforms: [linux]
 
   - name: wget
     description: non-interactive network downloader
@@ -1093,6 +1171,10 @@ packages:
         priority: 70
         package: wget
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: wget
+        supported_platforms: [linux]
 
   - name: httpie
     description: user-friendly command-line HTTP client
@@ -1105,6 +1187,10 @@ packages:
       - type: apt
         doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
         priority: 70
+        package: httpie
+        supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
         package: httpie
         supported_platforms: [linux]
 
@@ -1135,6 +1221,10 @@ packages:
         priority: 70
         package: iperf3
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: iperf3
+        supported_platforms: [linux]
 
   - name: ifstat
     description: network interface statistics
@@ -1147,6 +1237,10 @@ packages:
       - type: apt
         doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
         priority: 70
+        package: ifstat
+        supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
         package: ifstat
         supported_platforms: [linux]
 
@@ -1219,6 +1313,10 @@ packages:
         priority: 70
         package: socat
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: socat
+        supported_platforms: [linux]
 
   - name: rclone
     description: cloud storage sync tool
@@ -1228,7 +1326,7 @@ packages:
       repo: rclone/rclone
       tag_prefix: "v"
     url_template: "https://github.com/rclone/rclone/releases/download/{{.Version}}/rclone-{{.Version}}-{{.OS}}-{{.Arch}}.zip"
-    inner_path: rclone
+    inner_path: "rclone-{{.Version}}-{{.OS}}-{{.Arch}}/rclone"
     os_map:
       darwin: osx
       linux: linux
@@ -1267,6 +1365,10 @@ packages:
         priority: 70
         package: s3cmd
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: s3cmd
+        supported_platforms: [linux]
 
   - name: gdu
     description: disk usage analyzer
@@ -1293,7 +1395,9 @@ packages:
       repo: jgm/pandoc
       tag_prefix: ""
     url_template: "https://github.com/jgm/pandoc/releases/download/{{.Version}}/pandoc-{{.VersionNoV}}-{{if eq .OS \"macOS\"}}{{if eq .Arch \"amd64\"}}x86_64{{else}}arm64{{end}}{{else}}{{if eq .Arch \"amd64\"}}amd64{{else}}arm64{{end}}{{end}}-{{.OS}}{{if eq .OS \"macOS\"}}.zip{{else}}.tar.gz{{end}}"
-    inner_path: pandoc
+    inner_path: "pandoc-{{.VersionNoV}}{{if eq .OS \"macOS\"}}-{{if eq .Arch \"amd64\"}}x86_64{{else}}arm64{{end}}{{end}}"
+    install_dir: "~/.local/share/jd/installs/pandoc/{{.Version}}"
+    binaries: {pandoc: bin/pandoc, pandoc-lua: bin/pandoc-lua, pandoc-server: bin/pandoc-server}
     os_map:
       darwin: macOS
       linux: linux
@@ -1329,6 +1433,10 @@ packages:
         priority: 70
         package: imagemagick
         supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: imagemagick
+        supported_platforms: [linux]
 
   - name: ffmpeg
     description: audio and video converter
@@ -1341,6 +1449,10 @@ packages:
       - type: apt
         doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
         priority: 70
+        package: ffmpeg
+        supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
         package: ffmpeg
         supported_platforms: [linux]
 
@@ -1356,6 +1468,10 @@ packages:
         doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
         priority: 70
         package: poppler-utils
+        supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: poppler
         supported_platforms: [linux]
 
   - name: tesseract
@@ -1383,6 +1499,10 @@ packages:
       - type: apt
         doc_url: "https://manpages.ubuntu.com/manpages/noble/man8/apt.8.html"
         priority: 70
+        package: htop
+        supported_platforms: [linux]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
         package: htop
         supported_platforms: [linux]
 
@@ -1456,8 +1576,10 @@ packages:
       type: github
       repo: fastfetch-cli/fastfetch
       tag_prefix: ""
-    url_template: "https://github.com/fastfetch-cli/fastfetch/releases/download/{{.Version}}/fastfetch-{{.OS}}-{{.Arch}}.tar.gz"
-    inner_path: fastfetch
+    url_template: "https://github.com/fastfetch-cli/fastfetch/releases/download/{{.Version}}/fastfetch-{{if eq .OS \"macos\"}}macos-universal{{else}}linux-{{.Arch}}{{end}}.tar.gz"
+    inner_path: "fastfetch-{{if eq .OS \"macos\"}}macos-universal{{else}}linux-{{.Arch}}{{end}}/usr"
+    install_dir: "~/.local/share/jd/installs/fastfetch/{{.Version}}"
+    binaries: {fastfetch: bin/fastfetch, flashfetch: bin/flashfetch}
     os_map:
       darwin: macos
       linux: linux
@@ -1469,12 +1591,13 @@ packages:
   - name: sevenzip
     description: 7-Zip archive tools
     binary_name: 7zz
+    mode: tar
     doc_url: "https://github.com/ip7z/7zip/releases"
     version_from:
       type: github
       repo: ip7z/7zip
       tag_prefix: ""
-    url_template: "https://github.com/ip7z/7zip/releases/download/{{.Version}}/{{if eq .OS \"darwin\"}}7z{{.VersionNoV}}-mac.tar.xz{{else}}7z{{.VersionNoV}}-linux-{{if eq .Arch \"arm64\"}}arm64{{else}}x64{{end}}.tar.xz{{end}}"
+    url_template: "https://github.com/ip7z/7zip/releases/download/{{.Version}}/{{if eq .OS \"darwin\"}}7z{{replace .VersionNoV \".\" \"\"}}-mac.tar.xz{{else}}7z{{replace .VersionNoV \".\" \"\"}}-linux-{{if eq .Arch \"arm64\"}}arm64{{else}}x64{{end}}.tar.xz{{end}}"
     inner_path: 7zz
     supported_platforms: [linux, darwin]
 
@@ -1681,7 +1804,7 @@ packages:
       type: github
       repo: Wilfred/difftastic
       tag_prefix: ""
-    url_template: "https://github.com/Wilfred/difftastic/releases/download/{{.Version}}/difft-{{.Arch}}-{{.OS}}.tar.gz"
+    url_template: "https://github.com/Wilfred/difftastic/releases/download/{{.Version}}/difft-{{.VersionNoV}}-{{.Arch}}-{{.OS}}.tar.gz"
     inner_path: difft
     os_map:
       darwin: apple-darwin
@@ -1725,7 +1848,14 @@ packages:
       repo: etcd-io/etcd
       tag_prefix: "v"
     url_template: "https://github.com/etcd-io/etcd/releases/download/{{.Version}}/etcd-{{.Version}}-{{.OS}}-{{.Arch}}{{if eq .OS \"darwin\"}}.zip{{else}}.tar.gz{{end}}"
-    inner_path: "etcd-{{.Version}}-{{.OS}}-{{.Arch}}/etcd"
+    inner_path: "etcd-{{.Version}}-{{.OS}}-{{.Arch}}"
+    install_dir: "~/.local/share/jd/installs/etcd/{{.Version}}"
+    binaries: {etcd: etcd, etcdctl: etcdctl, etcdutl: etcdutl}
+    methods:
+      - type: binary
+      - type: brew
+        package: etcd
+        supported_platforms: [darwin]
     os_map:
       darwin: darwin
       linux: linux
@@ -1742,6 +1872,10 @@ packages:
         priority: 80
         package: fail2ban
         supported_platforms: [darwin]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: fail2ban
+        supported_platforms: [linux]
 
   - name: fd
     description: fast alternative to find
@@ -2014,6 +2148,7 @@ packages:
 
   - name: ripgrep
     description: fast recursive text search tool
+    binary_name: rg
     doc_url: "https://github.com/BurntSushi/ripgrep/releases"
     version_from:
       type: github
@@ -2046,6 +2181,10 @@ packages:
         priority: 80
         package: telnet
         supported_platforms: [darwin]
+      - type: apk
+        doc_url: https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper
+        package: telnet
+        supported_platforms: [linux]
 
   - name: tlrc
     description: official tldr client written in Rust
@@ -2164,8 +2303,74 @@ packages:
       - type: npm
         doc_url: "https://docs.npmjs.com/cli/commands/npm-install"
         priority: 80
-        package: "@pencil.dev/cli"
+        package: "@pen.dev/cli"
         supported_platforms: [linux, darwin]
+
+  - name: wecom-cli
+    description: WeCom CLI
+    doc_url: https://github.com/WecomTeam/wecom-cli
+    methods:
+      - {type: npm, package: "@wecom/cli", supported_platforms: [linux, darwin]}
+
+  - name: ctx7
+    description: Context7 CLI
+    doc_url: https://github.com/upstash/context7
+    methods:
+      - {type: npm, package: ctx7, supported_platforms: [linux, darwin]}
+
+  - name: codewhale
+    description: Codewhale coding agent, formerly deepseek-tui
+    doc_url: https://github.com/codewhale-hq/Codewhale
+    version_from: {type: github, repo: codewhale-hq/Codewhale, tag_prefix: v}
+    url_template: "https://github.com/codewhale-hq/Codewhale/releases/download/{{.Version}}/codewhale-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: "codewhale-{{.OS}}-{{.Arch}}"
+    install_dir: "~/.local/share/jd/installs/codewhale/{{.Version}}"
+    binaries: {codewhale: codewhale, codew: codew}
+    os_map: {darwin: macos}
+    arch_map: {amd64: x64}
+    methods:
+      - {type: binary, supported_platforms: [linux/amd64, linux/arm64, darwin/amd64, darwin/arm64]}
+
+  - name: happy-coder
+    binary_name: happy
+    description: Happy coding agent CLI
+    doc_url: https://github.com/slopus/happy
+    methods:
+      - type: npm
+        package: happy-coder
+        supported_platforms: [linux, darwin]
+        # npm may defer lifecycle scripts; the bundled native tools must be ready.
+        post_commands:
+          - 'node "$NPM_CONFIG_PREFIX/lib/node_modules/happy-coder/scripts/unpack-tools.cjs"'
+          - 'chmod +x "$NPM_CONFIG_PREFIX/lib/node_modules/happy-coder/tools/unpacked/difft" "$NPM_CONFIG_PREFIX/lib/node_modules/happy-coder/tools/unpacked/rg"'
+
+  - name: lark-cli
+    description: Lark CLI
+    doc_url: https://github.com/larksuite/cli
+    version_from: {type: github, repo: larksuite/cli, tag_prefix: v}
+    url_template: "https://github.com/larksuite/cli/releases/download/{{.Version}}/lark-cli-{{.VersionNoV}}-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: lark-cli
+    supported_platforms: [linux/amd64, linux/arm64, darwin/amd64, darwin/arm64]
+
+  - name: copilot
+    description: GitHub Copilot CLI
+    doc_url: https://github.com/github/copilot-cli
+    version_from: {type: github, repo: github/copilot-cli, tag_prefix: v}
+    url_template: "https://github.com/github/copilot-cli/releases/download/{{.Version}}/copilot-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: copilot
+    arch_map: {amd64: x64}
+    supported_platforms: [linux/amd64, linux/arm64, darwin/amd64, darwin/arm64]
+
+  - name: mcporter
+    description: MCP server CLI
+    doc_url: https://github.com/openclaw/mcporter
+    version_from: {type: github, repo: openclaw/mcporter, tag_prefix: v}
+    url_template: "https://github.com/openclaw/mcporter/releases/download/{{.Version}}/mcporter_{{.VersionNoV}}_{{.OS}}_{{.Arch}}.tar.gz"
+    inner_path: mcporter
+    arch_map: {amd64: x86_64}
+    methods:
+      - {type: binary, supported_platforms: [darwin/amd64, darwin/arm64]}
+      - {type: npm, package: mcporter, supported_platforms: [linux]}
 
   - name: doctoc
     description: Markdown table of contents generator
@@ -2276,23 +2481,32 @@ packages:
   - name: uv
     description: fast Python package and project manager
     doc_url: "https://docs.astral.sh/uv/getting-started/installation/"
-    command: "curl -LsSf https://astral.sh/uv/install.sh | sh"
-    mode: command
+    version_from: {type: github, repo: astral-sh/uv}
+    url_template: "https://github.com/astral-sh/uv/releases/download/{{.Version}}/uv-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "uv-{{.Arch}}-{{.OS}}"
+    install_dir: "~/.local/share/jd/installs/uv/{{.Version}}"
+    binaries: {uv: uv, uvx: uvx}
+    os_map: {darwin: apple-darwin, linux: unknown-linux-musl}
+    arch_map: {amd64: x86_64, arm64: aarch64}
     supported_platforms: [linux, darwin]
 
   - name: mise
     description: Development tool and environment manager
     doc_url: "https://mise.jdx.dev/getting-started"
-    methods:
-      - type: command
-        command: "curl -fsSL https://mise.run | sh"
-        post_commands:
-          - "~/.local/bin/mise --version"
-        supported_platforms: [linux, darwin]
+    version_from: {type: github, repo: jdx/mise, tag_prefix: v}
+    url_template: "https://github.com/jdx/mise/releases/download/{{.Version}}/mise-{{.Version}}-{{.OS}}-{{.Arch}}.tar.gz"
+    inner_path: mise/bin/mise
+    os_map: {darwin: macos, linux: linux}
+    arch_map: {amd64: x64, arm64: arm64}
+    supported_platforms: [linux, darwin]
 
   - name: rapid-mlx
     description: MLX inference and benchmarking toolkit
     methods:
+      - type: brew
+        package: rapid-mlx
+        doc_url: https://formulae.brew.sh/formula/rapid-mlx
+        supported_platforms: [darwin/arm64]
       - type: command
         doc_url: "https://pypi.org/project/rapid-mlx/"
         priority: 80
@@ -2302,8 +2516,12 @@ packages:
   - name: rustup
     description: Rust toolchain installer
     doc_url: "https://rustup.rs/"
-    command: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-    mode: command
+    methods:
+      - type: script
+        url_template: "https://sh.rustup.rs"
+        command: sh
+        script_args: [-y, --no-modify-path]
+        version_command: '"$HOME/.cargo/bin/rustup" --version'
     supported_platforms: [linux, darwin]
 
   - name: splitrail
@@ -3247,8 +3465,10 @@ packages:
   - name: fnm
     description: Fast Node.js version manager
     doc_url: "https://github.com/Schniz/fnm#installation"
-    command: "curl -fsSL https://fnm.vercel.app/install | bash"
-    mode: command
+    methods:
+      - type: script
+        url_template: "https://fnm.vercel.app/install"
+        script_args: [--skip-shell]
     supported_platforms: [linux, darwin]
 
   - name: gobee
@@ -3331,7 +3551,9 @@ packages:
       repo: earendil-works/pi
       tag_prefix: "v"
     url_template: "https://github.com/earendil-works/pi/releases/download/{{.Version}}/pi-{{.OS}}-{{.Arch}}.tar.gz"
-    inner_path: "pi/pi"
+    inner_path: "pi"
+    install_dir: "~/opt/pi"
+    binaries: {pi: pi}
     supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
     arch_map:
       amd64: x64
@@ -3921,15 +4143,20 @@ packages:
   - name: brew
     description: Homebrew package manager
     doc_url: "https://brew.sh/"
-    command: "bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
-    mode: command
+    methods:
+      - type: script
+        url_template: "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
     supported_platforms: [linux, darwin]
 
   - name: bun
     description: JavaScript runtime, bundler, test runner, and package manager
     doc_url: "https://bun.com/docs/installation"
-    command: "curl -fsSL https://bun.com/install | bash"
-    mode: command
+    version_from: {type: github, repo: oven-sh/bun, tag_prefix: bun-v}
+    url_template: "https://github.com/oven-sh/bun/releases/download/{{.Version}}/bun-{{.OS}}-{{.Arch}}.zip"
+    inner_path: "bun-{{.OS}}-{{.Arch}}"
+    install_dir: "~/.local/share/jd/installs/bun/{{.Version}}"
+    binaries: {bun: bun, bunx: bun}
+    arch_map: {amd64: x64, arm64: aarch64}
     supported_platforms: [linux, darwin]
 
   - name: mongodb-community-4.4
@@ -3944,10 +4171,10 @@ packages:
   - name: mongodb-database-tools
     description: MongoDB import, export, dump, restore, and statistics tools
     methods:
-      - type: command
+      - type: brew
         doc_url: "https://www.mongodb.com/docs/database-tools/installation/installation-macos/"
         priority: 80
-        command: "brew tap mongodb/brew && brew install mongodb-database-tools"
+        package: mongodb/brew/mongodb-database-tools
         supported_platforms: [darwin]
 
   - name: basictex
@@ -4033,4 +4260,130 @@ packages:
     doc_url: "https://www.zerotier.com/download/"
     command: "brew install --cask zerotier-one"
     mode: command
+    supported_platforms: [darwin]
+
+  - name: starship
+    description: Cross-shell prompt
+    doc_url: https://starship.rs/guide/
+    version_from: {type: github, repo: starship/starship, tag_prefix: v}
+    url_template: "https://github.com/starship/starship/releases/download/{{.Version}}/starship-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: starship
+    os_map: {darwin: apple-darwin, linux: unknown-linux-musl}
+    arch_map: {amd64: x86_64, arm64: aarch64}
+    supported_platforms: [linux, darwin]
+
+  - name: eza
+    description: Modern ls replacement
+    doc_url: https://github.com/eza-community/eza
+    version_from: {type: github, repo: eza-community/eza, tag_prefix: v}
+    methods:
+      - type: binary
+        url_template: "https://github.com/eza-community/eza/releases/download/{{.Version}}/eza_{{.Arch}}-unknown-linux-{{if eq .Arch \"x86_64\"}}musl{{else}}gnu{{end}}.tar.gz"
+        inner_path: eza
+        arch_map: {amd64: x86_64, arm64: aarch64}
+        supported_platforms: [linux]
+      - type: brew
+        package: eza
+        supported_platforms: [darwin]
+
+  - name: nushell
+    binary_name: nu
+    description: Structured-data shell
+    doc_url: https://www.nushell.sh/book/installation.html
+    version_from: {type: github, repo: nushell/nushell}
+    url_template: "https://github.com/nushell/nushell/releases/download/{{.Version}}/nu-{{.VersionNoV}}-{{.Arch}}-{{.OS}}.tar.gz"
+    inner_path: "nu-{{.VersionNoV}}-{{.Arch}}-{{.OS}}/nu"
+    os_map: {darwin: apple-darwin, linux: unknown-linux-musl}
+    arch_map: {amd64: x86_64, arm64: aarch64}
+    supported_platforms: [linux, darwin]
+
+  - name: yt-dlp
+    description: Video downloader
+    doc_url: https://github.com/yt-dlp/yt-dlp#installation
+    version_from: {type: github, repo: yt-dlp/yt-dlp}
+    url_template: "https://github.com/yt-dlp/yt-dlp/releases/download/{{.Version}}/yt-dlp_{{if eq .OS \"darwin\"}}macos{{else}}linux{{if eq .Arch \"arm64\"}}_aarch64{{end}}{{end}}"
+    mode: file
+    supported_platforms: [linux, darwin]
+
+  - name: opencode
+    description: OpenCode coding agent
+    doc_url: https://opencode.ai/docs/
+    version_from: {type: github, repo: anomalyco/opencode, tag_prefix: v}
+    url_template: "https://github.com/anomalyco/opencode/releases/download/{{.Version}}/opencode-{{.OS}}-{{.Arch}}{{if eq .OS \"darwin\"}}.zip{{else}}.tar.gz{{end}}"
+    inner_path: opencode
+    arch_map: {amd64: x64, arm64: arm64}
+    supported_platforms: [linux, darwin]
+    methods:
+      - type: binary
+      - type: brew
+        package: opencode
+        supported_platforms: [darwin]
+
+  - name: ripples
+    description: Personal activity capture CLI
+    doc_url: https://github.com/jimyag/ripples
+    version_from: {type: github, repo: jimyag/ripples, tag_prefix: v}
+    url_template: "https://github.com/jimyag/ripples/releases/download/{{.Version}}/ripples_{{.OS}}_{{.Arch}}"
+    mode: file
+    supported_platforms: [linux, darwin]
+
+  - name: askshell
+    description: Shell assistant
+    doc_url: https://github.com/jimyag/askshell
+    version_from: {type: github, repo: jimyag/askshell, tag_prefix: v}
+    url_template: "https://github.com/jimyag/askshell/releases/download/{{.Version}}/askshell_{{.OS}}_{{.Arch}}"
+    mode: file
+    supported_platforms: [linux, darwin]
+
+  - name: controller-gen
+    description: Kubernetes controller code generator
+    doc_url: https://github.com/kubernetes-sigs/controller-tools
+    version_from: {type: github, repo: kubernetes-sigs/controller-tools, tag_prefix: v}
+    url_template: "https://github.com/kubernetes-sigs/controller-tools/releases/download/{{.Version}}/controller-gen-{{.OS}}-{{.Arch}}"
+    mode: file
+    supported_platforms: [linux, darwin]
+
+  - name: splash
+    description: Splash CLI
+    doc_url: https://github.com/incoai/homebrew-tap
+    methods:
+      - {type: brew, package: incoai/tap/splash, supported_platforms: [darwin]}
+
+  - name: omnidiff
+    description: Semantic diff CLI
+    doc_url: https://github.com/ivankovic/omnidiff
+    methods:
+      - {type: brew, package: ivankovic/omnidiff/omnidiff, supported_platforms: [darwin]}
+
+  - name: pinentry-mac
+    description: macOS pinentry dialog
+    doc_url: https://formulae.brew.sh/formula/pinentry-mac
+    methods:
+      - {type: brew, package: pinentry-mac, supported_platforms: [darwin]}
+
+  - name: smartmontools
+    binary_name: smartctl
+    description: Disk health tools
+    doc_url: https://www.smartmontools.org/
+    methods:
+      - {type: brew, package: smartmontools, supported_platforms: [darwin]}
+      - {type: apt, package: smartmontools, supported_platforms: [linux]}
+      - {type: apk, package: smartmontools, supported_platforms: [linux]}
+
+  - name: nvm
+    description: Node version manager shell integration
+    doc_url: https://github.com/nvm-sh/nvm
+    methods:
+      - {type: brew, package: nvm, supported_platforms: [darwin]}
+
+  - name: mas
+    description: Mac App Store CLI
+    doc_url: https://github.com/mas-cli/mas
+    version_from: {type: github, repo: mas-cli/mas, tag_prefix: v}
+    url_template: "https://github.com/mas-cli/mas/releases/download/{{.Version}}/mas-{{.VersionNoV}}-{{.Arch}}.pkg"
+    mode: pkg
+    inner_path: mas.pkg/Payload/usr/local/opt/mas
+    install_dir: "~/.local/share/jd/installs/mas/{{.Version}}"
+    binaries: {mas: bin/mas}
+    arch_map: {amd64: x86_64, arm64: arm64}
     supported_platforms: [darwin]

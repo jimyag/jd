@@ -59,6 +59,16 @@ jd --list
 # Force refresh the remote registry cache
 jd --refresh-registry --list
 
+# Show successful installations and their recorded sources
+jd --installed
+
+# Upgrade all recorded tools, preserving exact version pins and install methods
+jd --upgrade
+jd --upgrade golangci-lint
+
+# Upgrade Go, then installed Go-sensitive tools and run real compatibility checks
+jd --upgrade go
+
 # Generate shell completion (bash, zsh, fish, powershell)
 jd --complete zsh > ~/.zshrc # or as needed
 ```
@@ -98,7 +108,7 @@ By default, jd tries CNB when GitHub registry, latest-version, or binary downloa
 requests fail. A binary download retry requires CNB to mirror the same version.
 The installer script also retries CNB when downloading jd itself fails. Installer
 requests allow 30 seconds to connect and retry failures twice. Version lookups
-allow 60 seconds per attempt, and binary downloads allow 120 seconds per attempt.
+allow 60 seconds per attempt, and binary downloads allow 10 minutes per attempt.
 
 Use `--cnb` or `JD_DOWNLOAD_SOURCE=cnb` to require CNB for the registry and GitHub
 release binaries. CNB keeps only the latest release per upstream repository.
@@ -134,17 +144,52 @@ jd --list
 
 ## Install Methods
 
-Each package can declare one or more install methods in priority order. `jd` sorts methods by `priority` from high to low and stops at the first successful one.
+Each package can declare one or more install methods.
+
+Official binary methods are preferred, followed by official `script` methods and available system package managers,
+then language installers and custom commands. Numeric priorities order methods within
+each group. Selection filters the OS and architecture and checks package-manager
+availability. Once selected, a failed method returns an error; download failures do
+not silently switch the installation to another package manager. `--method` explicitly
+selects a source.
+
+Successful CLI installations are recorded in `${XDG_STATE_HOME:-~/.local/state}/jd/installed.json`.
+`jd --upgrade` only manages those records. Explicit versions are pinned; `@latest`
+remains eligible for updates. Reinstalls and upgrades preserve the recorded source;
+use `--method` on a normal installation to change it. An explicit version changes its pin.
+Package-manager versions follow their distribution repositories; explicit version pins
+are currently rejected for these methods. Command methods may not report a version;
+upgrading reruns their installer. Go methods install into `~/.local/bin` using `GOBIN`
+and the active SDK (`GOTOOLCHAIN=local`), without downloading another Go toolchain.
+Npm methods use `~/.local` as their prefix so switching Node versions does not create
+another global installation. A method can explicitly override `NPM_CONFIG_PREFIX` for
+a legacy runtime. Npm executables use the active Node runtime.
+
+For GitHub version lookups, jd uses `GITHUB_TOKEN`, then `GH_TOKEN`, then an existing
+GitHub CLI login when available. Credentials are not written to installation records.
+
+One non-blocking OS file lock covers a whole CLI operation, including registry writes,
+installation and state updates. Another writer exits with the holder's PID. Batch
+upgrades run sequentially and report all independent failures with a nonzero exit.
+`--installed` reads the atomically replaced records without taking the writer lock.
+
+When upgrading Go, jd also updates already recorded `golangci-lint`, `staticcheck`,
+`gopls`, `dlv`, `goimports` and `gofumpt`. Uninstalled tools are not added and pinned
+tools remain pinned. A temporary module is compiled and executed, analyzed, formatted,
+and debugged with the installed tools. Shadowing PATH entries and unsupported Go
+versions fail verification. Previous versioned Go directories are retained; a failure
+does not claim that the whole upgrade was rolled back.
 
 Common method types:
 - `binary` — download an archive or file and install the binary
+- `script` — download an upstream installer completely, then run it with Bash (or `command: sh`); `script_args` supplies arguments and `version_command` reports its installed version
 - `command` — run an explicit shell command
-- `brew`, `apt`, `dnf`, `yum`, `pacman` — package manager installs
+- `brew`, `apt`, `apk`, `dnf`, `yum`, `pacman` — package manager installs
 - `go`, `npm` — language-specific installers
 
 Package manager defaults:
-- `apt`, `dnf`, `yum`, `pacman` use `sudo` by default
-- `brew`, `go`, `npm`, `command`, `binary` do not use `sudo` by default
+- `apt`, `apk`, `dnf`, `yum`, `pacman` use `sudo` by default
+- `brew`, `go`, `npm`, `script`, `command`, `binary` do not use `sudo` by default
 - `use_sudo: true|false` on a method overrides the default
 
 Hooks:
@@ -158,7 +203,7 @@ Version pins:
 - Binary methods use `version_from`, `url_template`, and `version_prefix`.
 - Go and npm methods replace an existing package suffix such as `@latest` when you run `jd <package>@<version>`.
 - Command methods can use `{{.Version}}` in `command`, hooks, package names, or env values.
-- Package manager methods such as `brew` and `apt` use the package name by default; pinning only applies if the configured command or package template uses `{{.Version}}`.
+- Package manager methods such as `brew`, `apt`, and `apk` reject version pins. Scripts reject pins unless their URL, arguments, command, or environment uses `{{.Version}}`.
 
 ## Environment Variables
 

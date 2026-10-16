@@ -29,6 +29,7 @@ type PackageEntry struct {
 	InnerPath          string            `yaml:"inner_path"`          // path inside archive, supports template
 	InstallDir         string            `yaml:"install_dir"`         // install whole directory here instead of single binary (supports ~ and templates)
 	Symlink            string            `yaml:"symlink"`             // create/update this symlink pointing to install_dir after install (supports ~)
+	Binaries           map[string]string `yaml:"binaries"`            // executable name to relative path inside install_dir
 	VersionPrefix      string            `yaml:"version_prefix"`      // prepended to user-supplied version if not already present (e.g. "go" for Go)
 	Env                map[string]string `yaml:"env"`                 // env vars injected when executing install script; values support templates (mode: script only)
 	FallbackCommands   map[string]string `yaml:"fallback_commands"`   // map of OS to fallback install command (e.g. darwin: "brew install ...")
@@ -44,6 +45,8 @@ type InstallMethod struct {
 	URLTemplate        string            `yaml:"url_template"`
 	Mode               string            `yaml:"mode"`
 	Command            string            `yaml:"command"`
+	ScriptArgs         []string          `yaml:"script_args"`
+	VersionCommand     string            `yaml:"version_command"`
 	Package            string            `yaml:"package"`
 	DocURL             string            `yaml:"doc_url"`
 	PreCommands        []string          `yaml:"pre_commands"`
@@ -51,6 +54,7 @@ type InstallMethod struct {
 	InnerPath          string            `yaml:"inner_path"`
 	InstallDir         string            `yaml:"install_dir"`
 	Symlink            string            `yaml:"symlink"`
+	Binaries           map[string]string `yaml:"binaries"`
 	VersionPrefix      string            `yaml:"version_prefix"`
 	Env                map[string]string `yaml:"env"`
 	UseSudo            *bool             `yaml:"use_sudo"`
@@ -212,7 +216,7 @@ func renderTemplate(tmpl, version, os, arch, name string, osMap, archMap map[str
 	mappedOS := mapValue(osMap, os)
 	mappedArch := mapValue(archMap, arch)
 
-	t, err := template.New("").Parse(tmpl)
+	t, err := template.New("").Funcs(template.FuncMap{"replace": strings.ReplaceAll}).Parse(tmpl)
 	if err != nil {
 		return "", fmt.Errorf("parse template: %w", err)
 	}
@@ -253,6 +257,7 @@ func (e *PackageEntry) legacyMethod() InstallMethod {
 		InnerPath:          e.InnerPath,
 		InstallDir:         e.InstallDir,
 		Symlink:            e.Symlink,
+		Binaries:           e.Binaries,
 		VersionPrefix:      e.VersionPrefix,
 		Env:                e.Env,
 		SupportedPlatforms: e.SupportedPlatforms,
@@ -285,6 +290,9 @@ func (e *PackageEntry) methodWithDefaults(method InstallMethod) InstallMethod {
 	}
 	if method.Symlink == "" {
 		method.Symlink = e.Symlink
+	}
+	if method.Binaries == nil {
+		method.Binaries = e.Binaries
 	}
 	if method.VersionPrefix == "" {
 		method.VersionPrefix = e.VersionPrefix

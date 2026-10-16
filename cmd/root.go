@@ -2,14 +2,18 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
+	"os/signal"
 	"sort"
 	"strings"
 
 	buildversion "github.com/jimmicro/version"
 	"github.com/jimyag/jd/internal/installer"
 	"github.com/jimyag/jd/internal/registry"
+	"github.com/jimyag/jd/internal/state"
 	"github.com/jimyag/jd/internal/versioner"
 	"github.com/spf13/cobra"
 )
@@ -21,11 +25,13 @@ var (
 	rootMethod          string
 	rootRefreshRegistry bool
 	rootCNB             bool
+	rootUpgrade         bool
+	rootInstalled       bool
 )
 
 var (
 	loadRegistry   = registry.Load
-	installPackage = installer.InstallWithOptions
+	installPackage = installer.InstallTracked
 )
 
 const defaultVersionLimit = 10
@@ -43,6 +49,11 @@ var rootCmd = &cobra.Command{
 		if len(args) != 0 {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
+		lock, err := state.Lock()
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+		defer func() { _ = lock.Close() }()
 		r, err := loadRegistry()
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
@@ -59,6 +70,24 @@ var rootCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if rootInstalled {
+			if len(args) > 0 || rootUpgrade {
+				return fmt.Errorf("--installed cannot be combined with packages or --upgrade")
+			}
+			return printInstalled()
+		}
+		if len(args) == 0 && !rootUpgrade && !rootListVersions && !rootListAllVersions && !rootRefreshRegistry && rootComplete == "" {
+			return cmd.Help()
+		}
+		lock, err := state.Lock()
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if err := lock.Close(); err != nil {
+				fmt.Fprintln(os.Stderr, "release jd lock:", err)
+			}
+		}()
 		if rootCNB {
 			previous, present := os.LookupEnv("JD_DOWNLOAD_SOURCE")
 			if err := os.Setenv("JD_DOWNLOAD_SOURCE", "cnb"); err != nil {
@@ -77,7 +106,6 @@ var rootCmd = &cobra.Command{
 		}
 
 		var r *registry.Registry
-		var err error
 		if rootRefreshRegistry {
 			r, err = registry.LoadWithOptions(registry.LoadOptions{RefreshRemote: true})
 		} else {
@@ -85,6 +113,9 @@ var rootCmd = &cobra.Command{
 		}
 		if err != nil {
 			return err
+		}
+		if rootUpgrade {
+			return upgradePackages(cmd.Context(), r, args)
 		}
 
 		if len(args) == 0 {
@@ -94,7 +125,7 @@ var rootCmd = &cobra.Command{
 			return cmd.Help()
 		}
 
-		name, version := parsePackageArg(args[0])
+		name, _ := parsePackageArg(args[0])
 		entry, ok := r.Find(name)
 		if !ok {
 			return suggestNotFound(r, name)
@@ -102,13 +133,27 @@ var rootCmd = &cobra.Command{
 		if rootListVersions || rootListAllVersions {
 			return printVersions(entry, rootListAllVersions)
 		}
-		return installPackage(context.Background(), entry, version, installer.InstallOptions{
-			Method: rootMethod,
-		})
+		installed, err := state.Load()
+		if err != nil {
+			return err
+		}
+		for _, arg := range args {
+			name, version := parsePackageArg(arg)
+			entry, ok := r.Find(name)
+			if !ok {
+				return suggestNotFound(r, name)
+			}
+			if err := installAndSave(cmd.Context(), entry, version, installer.InstallOptions{Method: rootMethod}, installed); err != nil {
+				return err
+			}
+		}
+		return nil
 	},
 }
 
 func init() {
+	rootCmd.Flags().BoolVar(&rootUpgrade, "upgrade", false, "Upgrade recorded tools; upgrading Go also updates and checks installed Go-sensitive tools")
+	rootCmd.Flags().BoolVar(&rootInstalled, "installed", false, "List tools successfully installed by jd")
 	rootCmd.Flags().BoolVar(&rootCNB, "cnb", false, "Use only the latest GitHub binaries mirrored on CNB")
 	rootCmd.Flags().BoolVar(&rootListVersions, "list", false, "List all packages or package versions")
 	rootCmd.Flags().BoolVar(&rootListAllVersions, "list-all", false, "List all available versions for a package")
@@ -116,6 +161,149 @@ func init() {
 	rootCmd.Flags().StringVar(&rootMethod, "method", "", "Force a specific install method (for example: binary, brew, apt)")
 	rootCmd.Flags().BoolVar(&rootRefreshRegistry, "refresh-registry", false, "Refresh the remote package registry cache")
 	rootCmd.SetVersionTemplate("{{.Version}}\n")
+}
+
+func printInstalled() error {
+	installed, err := state.Load()
+	if err != nil {
+		return err
+	}
+	names := make([]string, 0, len(installed))
+	for name := range installed {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	if len(names) == 0 {
+		fmt.Println("No tools recorded by jd.")
+		return nil
+	}
+	fmt.Printf("%-20s %-18s %-10s %-18s %s\n", "NAME", "VERSION", "METHOD", "PIN", "PATH")
+	for _, name := range names {
+		i := installed[name]
+		fmt.Printf("%-20s %-18s %-10s %-18s %s\n", name, i.Version, i.Method, i.RequestedVersion, i.Path)
+	}
+	return nil
+}
+
+func installAndSave(ctx context.Context, entry *registry.PackageEntry, version string, opts installer.InstallOptions, installed map[string]state.Installation) error {
+	if version == "latest" {
+		version = ""
+	}
+	if previous, ok := installed[entry.Name]; ok {
+		opts.Current = new(previous)
+		if opts.Method == "" {
+			opts.Method = previous.Method
+		}
+	}
+	result, err := installPackage(ctx, entry, version, opts)
+	if err != nil {
+		return fmt.Errorf("%s: %w", entry.Name, err)
+	}
+	installed[entry.Name] = result
+	if err := state.Save(installed); err != nil {
+		return fmt.Errorf("%s installed but recording failed: %w", entry.Name, err)
+	}
+	return nil
+}
+
+func upgradePackages(ctx context.Context, r *registry.Registry, args []string) error {
+	if rootListVersions || rootListAllVersions {
+		return fmt.Errorf("--upgrade cannot be combined with --list or --list-all")
+	}
+	installed, err := state.Load()
+	if err != nil {
+		return err
+	}
+	if len(args) == 0 {
+		for name := range installed {
+			args = append(args, name)
+		}
+	}
+	if len(args) == 0 {
+		fmt.Println("No tools recorded by jd; install tools with jd first.")
+		return nil
+	}
+	if rootMethod != "" {
+		return fmt.Errorf("--upgrade preserves recorded methods; use a normal installation to change --method")
+	}
+	requests := make(map[string]string)
+	for _, arg := range args {
+		name, version := parsePackageArg(arg)
+		if _, ok := installed[name]; !ok {
+			return fmt.Errorf("%s is not recorded by jd; install it with jd first", name)
+		}
+		requests[name] = version
+	}
+	_, upgradingGo := requests["go"]
+	if upgradingGo {
+		for _, name := range goSensitiveTools {
+			if _, ok := installed[name]; ok {
+				if _, exists := requests[name]; !exists {
+					requests[name] = ""
+				}
+			}
+		}
+	}
+	names := make([]string, 0, len(requests))
+	for name := range requests {
+		if name != "go" {
+			names = append(names, name)
+		}
+	}
+	sort.Strings(names)
+	if upgradingGo {
+		names = append([]string{"go"}, names...)
+	}
+	var failures []error
+	goFailed := false
+	for _, name := range names {
+		previous := installed[name]
+		if previous.RequestedVersion != "" && requests[name] == "" {
+			fmt.Printf("  skipping %s: pinned to %s\n", name, previous.RequestedVersion)
+			continue
+		}
+		if goFailed && isGoSensitive(name) {
+			failures = append(failures, fmt.Errorf("%s skipped because Go upgrade failed", name))
+			continue
+		}
+		entry, ok := r.Find(name)
+		if !ok {
+			failures = append(failures, suggestNotFound(r, name))
+			continue
+		}
+		err := installAndSave(ctx, entry, requests[name], installer.InstallOptions{Method: previous.Method, Upgrade: true}, installed)
+		if err != nil {
+			failures = append(failures, err)
+			fmt.Fprintln(os.Stderr, err)
+			if name == "go" {
+				goFailed = true
+			}
+		} else if name == "go" {
+			oldRoot, hadRoot := os.LookupEnv("GOROOT")
+			oldPath := os.Getenv("PATH")
+			defer func() {
+				if hadRoot {
+					_ = os.Setenv("GOROOT", oldRoot)
+				} else {
+					_ = os.Unsetenv("GOROOT")
+				}
+				_ = os.Setenv("PATH", oldPath)
+			}()
+			root := installed["go"].Path
+			if err := os.Setenv("GOROOT", root); err != nil {
+				return err
+			}
+			if err := os.Setenv("PATH", root+"/bin"+string(os.PathListSeparator)+oldPath); err != nil {
+				return err
+			}
+		}
+	}
+	if upgradingGo && !goFailed {
+		if err := verifyGoTools(ctx, installed); err != nil {
+			failures = append(failures, err)
+		}
+	}
+	return errors.Join(failures...)
 }
 
 func runComplete(cmd *cobra.Command, shell string) error {
@@ -151,7 +339,22 @@ func printAllPackages(r *registry.Registry) error {
 
 // Execute runs the root command.
 func Execute() error {
-	return rootCmd.Execute()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+	if os.Getenv("GITHUB_TOKEN") == "" {
+		token := os.Getenv("GH_TOKEN")
+		if token == "" {
+			if output, err := exec.CommandContext(ctx, "gh", "auth", "token", "--hostname", "github.com").Output(); err == nil {
+				token = strings.TrimSpace(string(output))
+			}
+		}
+		if token != "" {
+			if err := os.Setenv("GITHUB_TOKEN", token); err != nil {
+				return err
+			}
+		}
+	}
+	return rootCmd.ExecuteContext(ctx)
 }
 
 func parsePackageArg(arg string) (name, version string) {

@@ -3,28 +3,37 @@ package installer
 import (
 	"compress/gzip"
 	"context"
+	"debug/buildinfo"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
+	"maps"
+	neturl "net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
 	getter "github.com/hashicorp/go-getter/v2"
+	goversion "github.com/hashicorp/go-version"
 
 	"github.com/jimyag/jd/internal/cnb"
 	"github.com/jimyag/jd/internal/registry"
+	"github.com/jimyag/jd/internal/state"
 	"github.com/jimyag/jd/internal/versioner"
 )
 
 const defaultBinDir = ".local/bin"
 
 type InstallOptions struct {
-	Method string
+	Method  string
+	Upgrade bool
+	Current *state.Installation
 }
 
 // BinDir returns the directory where binaries are installed.
@@ -44,36 +53,157 @@ func Install(ctx context.Context, entry *registry.PackageEntry, version string) 
 }
 
 func InstallWithOptions(ctx context.Context, entry *registry.PackageEntry, version string, opts InstallOptions) error {
+	_, err := InstallTracked(ctx, entry, version, opts)
+	return err
+}
+
+// InstallTracked returns what was installed. The CLI holds the global operation lock.
+func InstallTracked(ctx context.Context, entry *registry.PackageEntry, version string, opts InstallOptions) (state.Installation, error) {
+	result := state.Installation{Name: entry.Name, RequestedVersion: version}
 	goos := runtime.GOOS
 	goarch := runtime.GOARCH
 
 	methods, err := selectMethods(entry, opts.Method, goos, goarch)
 	if err != nil {
-		return err
+		return result, err
 	}
-
-	var errs []error
 	for _, method := range methods {
 		if cnb.Enabled() && method.Type != "binary" {
 			continue
 		}
-		if err := installMethod(ctx, entry, &method, version, goos, goarch); err != nil {
-			if cnb.Enabled() || errors.Is(err, cnb.ErrUnavailable) {
-				return formatMethodError(method, err)
+		resolved, err := resolveInstallVersion(ctx, &method, version)
+		if err != nil {
+			return result, formatMethodError(method, err)
+		}
+		if method.Type == "binary" && version == "" && opts.Current != nil && opts.Current.Version != "" {
+			current, currentErr := goversion.NewVersion(strings.TrimPrefix(strings.TrimPrefix(opts.Current.Version, method.VersionPrefix), method.VersionFrom.TagPrefix))
+			candidate, candidateErr := goversion.NewVersion(strings.TrimPrefix(strings.TrimPrefix(resolved, method.VersionPrefix), method.VersionFrom.TagPrefix))
+			if currentErr == nil && candidateErr == nil && candidate.LessThan(current) {
+				if opts.Current.Method != method.Type {
+					return result, fmt.Errorf("%s binary %s is older than recorded %s from %s; specify an explicit version to allow a downgrade", entry.Name, resolved, opts.Current.Version, opts.Current.Method)
+				}
+				fmt.Printf("  keeping %s %s: source currently reports older %s\n", entry.Name, opts.Current.Version, resolved)
+				resolved = opts.Current.Version
 			}
-			errs = append(errs, formatMethodError(method, err))
-			continue
 		}
-		return nil
+		result.Method, result.Version = method.Type, resolved
+		result.Package = method.Package
+		binDir, err := BinDir()
+		if err != nil {
+			return result, err
+		}
+		result.Path = filepath.Join(binDir, entry.GetBinaryName())
+		if method.Type == "npm" {
+			method.Env = maps.Clone(method.Env)
+			if method.Env == nil {
+				method.Env = make(map[string]string)
+			}
+			if _, configured := method.Env["NPM_CONFIG_PREFIX"]; !configured {
+				method.Env["NPM_CONFIG_PREFIX"] = filepath.Dir(binDir)
+			}
+		}
+		if method.InstallDir != "" {
+			path, err := method.RenderInstallDir(entry.Name, resolved, goos, goarch)
+			if err != nil {
+				return result, err
+			}
+			result.Path, err = expandHome(path)
+			if err != nil {
+				return result, err
+			}
+		}
+		if method.Type == "binary" && opts.Current != nil && opts.Current.Method == method.Type && opts.Current.Version == resolved && opts.Current.Path == result.Path {
+			if installationPresent(result.Path, method) {
+				if info, err := buildinfo.ReadFile(result.Path); err == nil {
+					result.GoVersion = info.GoVersion
+				}
+				fmt.Printf("  %s %s is up to date\n", entry.Name, resolved)
+				return result, nil
+			}
+		}
+		if err := installMethod(ctx, entry, &method, resolved, goos, goarch, opts.Upgrade); err != nil {
+			return result, formatMethodError(method, err)
+		}
+		if isCommandMethod(method.Type) {
+			if method.Type == "brew" {
+				prefix, err := exec.CommandContext(ctx, "brew", "--prefix", method.Package).Output()
+				if err != nil {
+					return result, fmt.Errorf("query installed brew prefix: %w", err)
+				}
+				keg, err := filepath.EvalSymlinks(strings.TrimSpace(string(prefix)))
+				if err != nil {
+					return result, fmt.Errorf("resolve installed brew keg: %w", err)
+				}
+				result.Version, result.Path = filepath.Base(keg), ""
+				for _, subdir := range []string{"bin", "sbin", "libexec/bin"} {
+					candidate := filepath.Join(keg, subdir, entry.GetBinaryName())
+					if path, err := exec.LookPath(candidate); err == nil {
+						result.Path = path
+						break
+					}
+				}
+			} else if method.Type == "npm" {
+				result.Version, result.Path, err = npmInstallation(ctx, entry, &method, resolved, goos, goarch)
+				if err != nil {
+					return result, err
+				}
+			} else {
+				if method.Type != "go" {
+					result.Path, _ = exec.LookPath(entry.GetBinaryName())
+				}
+				result.Version = installedVersion(ctx, method, result.Path)
+			}
+		}
+		if method.VersionCommand != "" {
+			command := exec.CommandContext(ctx, "sh", "-c", method.VersionCommand)
+			env, err := method.RenderEnv(entry.Name, resolved, goos, goarch)
+			if err != nil {
+				return result, err
+			}
+			command.Env = append(os.Environ(), env...)
+			output, err := command.Output()
+			if err != nil {
+				return result, fmt.Errorf("query installed version: %w", err)
+			}
+			result.Version = strings.TrimSpace(string(output))
+		}
+		if info, err := buildinfo.ReadFile(result.Path); err == nil {
+			result.GoVersion = info.GoVersion
+		}
+		return result, nil
 	}
+	if cnb.Enabled() {
+		return result, fmt.Errorf("CNB has no binary installation method for %s on %s/%s", entry.Name, goos, goarch)
+	}
+	return result, fmt.Errorf("%s does not support %s/%s", entry.Name, goos, goarch)
+}
 
-	if len(errs) == 0 {
-		if cnb.Enabled() {
-			return fmt.Errorf("CNB has no binary installation method for %s on %s/%s", entry.Name, goos, goarch)
-		}
-		return fmt.Errorf("%s does not support %s/%s", entry.Name, goos, goarch)
+func installationPresent(path string, method registry.InstallMethod) bool {
+	resolvedPath, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		return false
 	}
-	return errors.Join(errs...)
+	if method.Symlink != "" {
+		link, err := expandHome(method.Symlink)
+		if err != nil {
+			return false
+		}
+		target, err := filepath.EvalSymlinks(link)
+		if err != nil || target != resolvedPath {
+			return false
+		}
+	}
+	binDir, err := BinDir()
+	if err != nil {
+		return false
+	}
+	for name, relative := range method.Binaries {
+		target, err := filepath.EvalSymlinks(filepath.Join(binDir, name))
+		if err != nil || target != filepath.Join(resolvedPath, relative) {
+			return false
+		}
+	}
+	return true
 }
 
 func formatMethodError(method registry.InstallMethod, err error) error {
@@ -83,35 +213,40 @@ func formatMethodError(method registry.InstallMethod, err error) error {
 	return fmt.Errorf("%s: %w (docs: %s)", method.Type, err, method.DocURL)
 }
 
-func installMethod(ctx context.Context, entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string) error {
+func resolveInstallVersion(ctx context.Context, method *registry.InstallMethod, version string) (string, error) {
 	if isCommandMethod(method.Type) {
-		var err error
-		version, err = resolveCommandVersion(method, version)
-		if err != nil {
-			return err
+		if version != "" && slices.Contains([]string{"brew", "apt", "apk", "dnf", "yum", "pacman"}, method.Type) {
+			return "", fmt.Errorf("version pins are not supported by the %s method", method.Type)
 		}
-		return runCommand(ctx, entry, method, version, goos, goarch)
+		return resolveCommandVersion(method, version)
 	}
-
-	var err error
 	if cnb.Enabled() {
 		repo := cnb.GitHubRepo(method.URLTemplate)
 		if repo == "" {
-			return fmt.Errorf("CNB does not mirror the binary source for %s", entry.Name)
+			return "", fmt.Errorf("CNB does not mirror binary source %s", method.URLTemplate)
 		}
 		latest, fetchErr := cnb.Latest(ctx, repo)
 		if fetchErr != nil {
-			return fetchErr
+			return "", fetchErr
 		}
 		if version != "" && strings.TrimPrefix(version, "v") != strings.TrimPrefix(latest, "v") {
-			return fmt.Errorf("CNB only mirrors %s@%s; requested %s", entry.Name, latest, version)
+			return "", fmt.Errorf("CNB only mirrors %s; requested %s", latest, version)
 		}
-		version = latest
-	} else {
-		version, err = resolveVersion(method, version)
+		return latest, nil
 	}
-	if err != nil {
-		return err
+	return resolveVersion(method, version)
+}
+
+func installMethod(ctx context.Context, entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string, upgrade bool) error {
+	if isCommandMethod(method.Type) && method.Type != "script" {
+		return runCommandWithUpgrade(ctx, entry, method, version, goos, goarch, upgrade)
+	}
+	if method.Type == "binary" {
+		for _, command := range method.PreCommands {
+			if err := executeShellCommand(ctx, entry, method, command, version, goos, goarch); err != nil {
+				return fmt.Errorf("pre command failed: %w", err)
+			}
+		}
 	}
 	fmt.Printf("  resolving version %s... ok\n", version)
 
@@ -139,7 +274,7 @@ func installMethod(ctx context.Context, entry *registry.PackageEntry, method *re
 	// Use ModeFile for direct binaries so go-getter saves to dst as a file.
 	// Use ModeDir (default) for archives so go-getter extracts into dst as a directory.
 	getMode := getter.ModeDir
-	if method.Mode == "file" {
+	if method.Type == "script" || method.Mode == "file" || method.Mode == "pkg" || method.Mode == "tar" {
 		getMode = getter.ModeFile
 	}
 
@@ -149,9 +284,29 @@ func installMethod(ctx context.Context, entry *registry.PackageEntry, method *re
 		GetMode: getMode,
 	}
 
-	client := &getter.Client{}
+	getters := slices.Clone(getter.Getters)
+	for i, backend := range getters {
+		if httpGetter, ok := backend.(*getter.HttpGetter); ok {
+			configured := *httpGetter
+			// go-getter defaults to a 30-second read deadline even while data is arriving.
+			configured.HeadFirstTimeout = 30 * time.Second
+			configured.ReadTimeout = 10 * time.Minute
+			getters[i] = &configured
+		}
+	}
+	client := &getter.Client{Getters: getters}
 	download := func() error {
-		downloadCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+		if method.Mode == "tar" {
+			source, err := neturl.Parse(req.Src)
+			if err != nil {
+				return err
+			}
+			query := source.Query()
+			query.Set("archive", "false")
+			source.RawQuery = query.Encode()
+			req.Src = source.String()
+		}
+		downloadCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 		defer cancel()
 		_, err := client.Get(downloadCtx, req)
 		return err
@@ -173,16 +328,57 @@ func installMethod(ctx context.Context, entry *registry.PackageEntry, method *re
 			return errors.Join(fmt.Errorf("download %s: %w", url, err), fmt.Errorf("%w: download %s: %w", cnb.ErrUnavailable, mirrorURL, mirrorErr))
 		}
 	}
+	if method.Type == "script" {
+		interpreter := method.Command
+		if interpreter == "" {
+			interpreter = "bash"
+		}
+		command := interpreter + " " + shellArg(dst)
+		for _, arg := range method.ScriptArgs {
+			value, err := renderTemplateIfNeeded(entry, method, arg, version, goos, goarch)
+			if err != nil {
+				return err
+			}
+			command += " " + shellArg(value)
+		}
+		scriptMethod := *method
+		scriptMethod.Command = command
+		return runCommandWithUpgrade(ctx, entry, &scriptMethod, version, goos, goarch, upgrade)
+	}
 	if method.Mode == "file" {
 		if err := decompressGzipFileIfNeeded(dst); err != nil {
 			return err
 		}
 	}
+	if method.Mode == "pkg" || method.Mode == "tar" {
+		extracted := filepath.Join(tmpDir, "expanded")
+		command := exec.CommandContext(ctx, "pkgutil", "--expand-full", dst, extracted)
+		if method.Mode == "tar" {
+			if err := os.Mkdir(extracted, 0o755); err != nil {
+				return err
+			}
+			command = exec.CommandContext(ctx, "tar", "-xf", dst, "-C", extracted)
+		}
+		if output, err := command.CombinedOutput(); err != nil {
+			return fmt.Errorf("expand %s artifact: %w: %s", method.Mode, err, output)
+		}
+		dst = extracted
+	}
 
 	if method.InstallDir != "" {
-		return installDir(dst, entry, method, version, goos, goarch)
+		err = installDir(dst, entry, method, version, goos, goarch)
+	} else {
+		err = installBinary(dst, entry, method, version, goos, goarch)
 	}
-	return installBinary(dst, entry, method, version, goos, goarch)
+	if err != nil {
+		return err
+	}
+	for _, command := range method.PostCommands {
+		if err := executeShellCommand(ctx, entry, method, command, version, goos, goarch); err != nil {
+			return fmt.Errorf("post command failed: %w", err)
+		}
+	}
+	return nil
 }
 
 // installBinary locates the binary inside dst and copies it to ~/.local/bin.
@@ -224,6 +420,14 @@ func installDir(dst string, entry *registry.PackageEntry, method *registry.Insta
 	if _, err := os.Stat(srcDir); err != nil {
 		return fmt.Errorf("inner_path %q not found in archive (expected at %s)", method.InnerPath, srcDir)
 	}
+	for name, relative := range method.Binaries {
+		if name == "." || filepath.Base(name) != name || !filepath.IsLocal(relative) {
+			return fmt.Errorf("invalid executable mapping %q: %q", name, relative)
+		}
+		if info, err := os.Stat(filepath.Join(srcDir, relative)); err != nil || info.IsDir() {
+			return fmt.Errorf("executable %s missing from archive", relative)
+		}
+	}
 
 	rawInstallDir, err := method.RenderInstallDir(entry.Name, version, goos, goarch)
 	if err != nil {
@@ -257,21 +461,56 @@ func installDir(dst string, entry *registry.PackageEntry, method *registry.Insta
 		if err != nil {
 			return err
 		}
-		// Remove existing symlink or directory.
-		if err := os.RemoveAll(link); err != nil {
-			return fmt.Errorf("remove existing %s: %w", link, err)
-		}
-		if err := os.Symlink(installDir, link); err != nil {
+		if err := replaceSymlink(installDir, link); err != nil {
 			return fmt.Errorf("create symlink %s -> %s: %w", link, installDir, err)
 		}
 		fmt.Printf("  symlinked %s -> %s\n", link, installDir)
 		warnIfNotInPATH(filepath.Join(link, "bin"))
-	} else {
+	} else if len(method.Binaries) == 0 {
 		warnIfNotInPATH(filepath.Join(installDir, "bin"))
+	}
+	if len(method.Binaries) > 0 {
+		binDir, err := BinDir()
+		if err != nil {
+			return err
+		}
+		if err := ensureBinDir(binDir); err != nil {
+			return err
+		}
+		for name, relative := range method.Binaries {
+			target := filepath.Join(installDir, relative)
+			link := filepath.Join(binDir, name)
+			if err := replaceSymlink(target, link); err != nil {
+				return err
+			}
+		}
+		warnIfNotInPATH(binDir)
 	}
 
 	fmt.Printf("  done. %s %s\n", entry.Name, version)
 	return nil
+}
+
+func replaceSymlink(target, link string) error {
+	if info, err := os.Lstat(link); err == nil && info.IsDir() {
+		return fmt.Errorf("refusing to replace directory %s with a symlink", link)
+	}
+	temporary, err := os.CreateTemp(filepath.Dir(link), ".jd-link-*")
+	if err != nil {
+		return err
+	}
+	if err := temporary.Close(); err != nil {
+		_ = os.Remove(temporary.Name())
+		return err
+	}
+	if err := os.Remove(temporary.Name()); err != nil {
+		return err
+	}
+	if err := os.Symlink(target, temporary.Name()); err != nil {
+		return err
+	}
+	defer func() { _ = os.Remove(temporary.Name()) }()
+	return os.Rename(temporary.Name(), link)
 }
 
 func locateBinary(dst string, entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string) (string, error) {
@@ -297,13 +536,13 @@ func locateBinary(dst string, entry *registry.PackageEntry, method *registry.Ins
 	}
 
 	target := filepath.Join(dst, entry.GetBinaryName())
-	if _, err := os.Stat(target); err == nil {
+	if info, err := os.Lstat(target); err == nil && info.Mode().IsRegular() {
 		return target, nil
 	}
 
 	var found string
 	err = filepath.Walk(dst, func(path string, fi os.FileInfo, err error) error {
-		if err != nil || fi.IsDir() {
+		if err != nil || !fi.Mode().IsRegular() {
 			return err
 		}
 		if strings.EqualFold(fi.Name(), entry.GetBinaryName()) {
@@ -331,8 +570,15 @@ func selectMethods(entry *registry.PackageEntry, requestedType, goos, goarch str
 		if !method.SupportsPlatform(goos, goarch) {
 			continue
 		}
+		if requestedType == "" && slices.Contains([]string{"brew", "apt", "apk", "dnf", "yum", "pacman"}, method.Type) {
+			if _, err := exec.LookPath(method.Type); err != nil {
+				continue
+			}
+		}
 		filtered = append(filtered, method)
 	}
+	// Source preference takes precedence over numeric priorities within a source tier.
+	slices.SortStableFunc(filtered, func(a, b registry.InstallMethod) int { return methodRank(a.Type) - methodRank(b.Type) })
 	if len(filtered) > 0 {
 		return filtered, nil
 	}
@@ -340,6 +586,19 @@ func selectMethods(entry *registry.PackageEntry, requestedType, goos, goarch str
 		return nil, fmt.Errorf("%s has no supported method %q for %s/%s", entry.Name, requestedType, goos, goarch)
 	}
 	return nil, nil
+}
+
+func methodRank(method string) int {
+	switch method {
+	case "binary":
+		return 0
+	case "script":
+		return 1
+	case "brew", "apt", "apk", "dnf", "yum", "pacman":
+		return 2
+	default:
+		return 3
+	}
 }
 
 func resolveVersion(method *registry.InstallMethod, version string) (string, error) {
@@ -361,7 +620,13 @@ func resolveVersion(method *registry.InstallMethod, version string) (string, err
 
 func resolveCommandVersion(method *registry.InstallMethod, version string) (string, error) {
 	if version != "" {
+		if method.Type == "script" && !commandUsesVersion(method) {
+			return "", fmt.Errorf("this script does not support version pins")
+		}
 		return resolveVersion(method, version)
+	}
+	if method.Type == "script" && method.VersionFrom.Type == "" {
+		return "", nil
 	}
 	if commandUsesVersion(method) {
 		return resolveVersion(method, version)
@@ -374,7 +639,7 @@ func resolveCommandVersion(method *registry.InstallMethod, version string) (stri
 
 func isCommandMethod(methodType string) bool {
 	switch methodType {
-	case "command", "apt", "dnf", "yum", "pacman", "brew", "go", "npm":
+	case "script", "command", "apt", "apk", "dnf", "yum", "pacman", "brew", "go", "npm":
 		return true
 	default:
 		return false
@@ -389,6 +654,8 @@ func defaultCommandForMethod(entry *registry.PackageEntry, method *registry.Inst
 	switch method.Type {
 	case "apt":
 		return "apt install -y " + pkg, nil
+	case "apk":
+		return "apk add " + pkg, nil
 	case "dnf":
 		return "dnf install -y " + pkg, nil
 	case "yum":
@@ -398,9 +665,9 @@ func defaultCommandForMethod(entry *registry.PackageEntry, method *registry.Inst
 	case "brew":
 		return "brew install " + pkg, nil
 	case "go":
-		return "go install " + versionedPackage(pkg, version), nil
+		return "go install " + shellArg(versionedPackage(pkg, version)), nil
 	case "npm":
-		return "npm install -g " + versionedPackage(pkg, version), nil
+		return "npm install -g " + shellArg(versionedPackage(pkg, version)), nil
 	default:
 		if method.Command == "" {
 			return "", fmt.Errorf("method %s requires command or package", method.Type)
@@ -409,12 +676,14 @@ func defaultCommandForMethod(entry *registry.PackageEntry, method *registry.Inst
 	}
 }
 
+func shellArg(value string) string { return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'" }
+
 func useSudo(method *registry.InstallMethod) bool {
 	if method.UseSudo != nil {
 		return *method.UseSudo
 	}
 	switch method.Type {
-	case "apt", "dnf", "yum", "pacman":
+	case "apt", "apk", "dnf", "yum", "pacman":
 		return true
 	default:
 		return false
@@ -565,6 +834,10 @@ func copyFile(src, dst string, mode fs.FileMode) error {
 
 // runCommand renders the method command and executes it via sh -c.
 func runCommand(ctx context.Context, entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string) error {
+	return runCommandWithUpgrade(ctx, entry, method, version, goos, goarch, false)
+}
+
+func runCommandWithUpgrade(ctx context.Context, entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string, upgrade bool) error {
 	for _, command := range method.PreCommands {
 		if err := executeShellCommand(ctx, entry, method, command, version, goos, goarch); err != nil {
 			return fmt.Errorf("pre command failed: %w", err)
@@ -574,6 +847,20 @@ func runCommand(ctx context.Context, entry *registry.PackageEntry, method *regis
 	cmd, err := defaultCommandForMethod(entry, method, version, goos, goarch)
 	if err != nil {
 		return err
+	}
+	if upgrade && method.Command == "" {
+		pkg, err := renderPackage(entry, method, version, goos, goarch)
+		if err != nil {
+			return err
+		}
+		switch method.Type {
+		case "brew":
+			cmd = "brew upgrade " + pkg
+		case "apk":
+			cmd = "apk add --upgrade " + pkg
+		case "dnf", "yum":
+			cmd = method.Type + " upgrade -y " + pkg
+		}
 	}
 	if err := executeShellCommand(ctx, entry, method, cmd, version, goos, goarch); err != nil {
 		return fmt.Errorf("command failed: %w", err)
@@ -594,7 +881,7 @@ func executeShellCommand(ctx context.Context, entry *registry.PackageEntry, meth
 	if err != nil {
 		return fmt.Errorf("render command: %w", err)
 	}
-	if useSudo(method) {
+	if useSudo(method) && os.Geteuid() != 0 {
 		cmd = prependSudo(cmd)
 	}
 
@@ -605,6 +892,16 @@ func executeShellCommand(ctx context.Context, entry *registry.PackageEntry, meth
 		return err
 	}
 	env := append(os.Environ(), extra...)
+	if method.Type == "go" {
+		binDir, err := BinDir()
+		if err != nil {
+			return err
+		}
+		if err := ensureBinDir(binDir); err != nil {
+			return err
+		}
+		env = append(env, "GOBIN="+binDir, "GOTOOLCHAIN=local")
+	}
 	for _, kv := range extra {
 		name, _, _ := strings.Cut(kv, "=")
 		fmt.Printf("  env: %s=<redacted>\n", name)
@@ -620,6 +917,68 @@ func executeShellCommand(ctx context.Context, entry *registry.PackageEntry, meth
 		return err
 	}
 	return nil
+}
+
+func npmInstallation(ctx context.Context, entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string) (string, string, error) {
+	pkg, err := renderPackage(entry, method, version, goos, goarch)
+	if err != nil {
+		return "", "", err
+	}
+	if packageHasVersionSuffix(pkg) {
+		pkg = pkg[:strings.LastIndex(pkg, "@")]
+	}
+	command := exec.CommandContext(ctx, "sh", "-c", "npm root -g")
+	env, err := method.RenderEnv(entry.Name, version, goos, goarch)
+	if err != nil {
+		return "", "", err
+	}
+	command.Env = append(os.Environ(), env...)
+	output, err := command.Output()
+	if err != nil {
+		return "", "", fmt.Errorf("query npm root: %w", err)
+	}
+	root := strings.TrimSpace(string(output))
+	data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(pkg), "package.json"))
+	if err != nil {
+		return "", "", err
+	}
+	var metadata struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(data, &metadata); err != nil {
+		return "", "", err
+	}
+	path := filepath.Join(filepath.Dir(filepath.Dir(root)), "bin", entry.GetBinaryName())
+	if _, err := os.Stat(path); err != nil {
+		path = ""
+	}
+	return metadata.Version, path, nil
+}
+
+func installedVersion(ctx context.Context, method registry.InstallMethod, path string) string {
+	if method.Type == "go" {
+		if info, err := buildinfo.ReadFile(path); err == nil {
+			return info.Main.Version
+		}
+		return ""
+	}
+	var command *exec.Cmd
+	switch method.Type {
+	case "apt":
+		command = exec.CommandContext(ctx, "dpkg-query", "-W", "-f=${Version}", method.Package)
+	case "apk":
+		command = exec.CommandContext(ctx, "apk", "info", "-v", "-e", method.Package)
+	default:
+		return ""
+	}
+	output, err := command.Output()
+	if err != nil {
+		return ""
+	}
+	if method.Type == "apk" {
+		return strings.TrimPrefix(strings.TrimSpace(string(output)), method.Package+"-")
+	}
+	return strings.TrimSpace(string(output))
 }
 
 func renderPackage(entry *registry.PackageEntry, method *registry.InstallMethod, version, goos, goarch string) (string, error) {
@@ -644,6 +1003,14 @@ func packageHasVersionSuffix(pkg string) bool {
 }
 
 func commandUsesVersion(method *registry.InstallMethod) bool {
+	if method.Type == "script" && usesVersionTemplate(method.URLTemplate) {
+		return true
+	}
+	for _, arg := range method.ScriptArgs {
+		if usesVersionTemplate(arg) {
+			return true
+		}
+	}
 	if usesVersionTemplate(method.Command) || usesVersionTemplate(method.Package) {
 		return true
 	}
