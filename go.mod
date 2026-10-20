@@ -1,6 +1,8 @@
 module github.com/jimyag/jd
 
-go 1.26.1
+go 1.27
+
+toolchain go1.27.3
 
 require (
 	github.com/gofrs/flock v0.12.1
