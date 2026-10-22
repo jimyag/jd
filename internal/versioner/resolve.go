@@ -11,16 +11,23 @@ import (
 
 // Latest returns the latest version for the given version source.
 func Latest(src registry.VersionSource) (string, error) {
-	if src.Type == "github" && cnb.Enabled() {
-		return cnb.Latest(context.Background(), src.Repo)
+	repo := src.Repo
+	if src.Type == "godev" {
+		repo = "go.dev/go"
+	}
+	if cnb.Enabled() {
+		if src.Type != "github" && src.Type != "godev" {
+			return "", fmt.Errorf("CNB does not mirror version source %q", src.Type)
+		}
+		return cnb.Latest(context.Background(), repo)
 	}
 	v, err := New(src)
 	if err != nil {
 		return "", err
 	}
 	latest, err := v.Latest()
-	if err != nil && src.Type == "github" {
-		mirrored, mirrorErr := cnb.Latest(context.Background(), src.Repo)
+	if err != nil && (src.Type == "github" || src.Type == "godev") {
+		mirrored, mirrorErr := cnb.Latest(context.Background(), repo)
 		if mirrorErr != nil {
 			return "", errors.Join(err, mirrorErr)
 		}
@@ -31,11 +38,8 @@ func Latest(src registry.VersionSource) (string, error) {
 
 // List returns available versions for the given version source.
 func List(src registry.VersionSource) ([]string, error) {
-	if cnb.Enabled() && src.Type != "github" {
-		return nil, fmt.Errorf("CNB does not mirror version source %q", src.Type)
-	}
-	if src.Type == "github" && cnb.Enabled() {
-		latest, err := cnb.Latest(context.Background(), src.Repo)
+	if cnb.Enabled() {
+		latest, err := Latest(src)
 		if err != nil {
 			return nil, err
 		}

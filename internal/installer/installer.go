@@ -221,7 +221,7 @@ func resolveInstallVersion(ctx context.Context, method *registry.InstallMethod, 
 		return resolveCommandVersion(method, version)
 	}
 	if cnb.Enabled() {
-		repo := cnb.GitHubRepo(method.URLTemplate)
+		repo := cnb.Repo(method.URLTemplate)
 		if repo == "" {
 			return "", fmt.Errorf("CNB does not mirror binary source %s", method.URLTemplate)
 		}
@@ -312,7 +312,7 @@ func installMethod(ctx context.Context, entry *registry.PackageEntry, method *re
 		return err
 	}
 	if err := download(); err != nil {
-		if cnb.Enabled() || cnb.GitHubRepo(url) == "" {
+		if cnb.Enabled() || cnb.Repo(url) == "" {
 			return fmt.Errorf("download %s: %w", url, err)
 		}
 		mirrorURL, mirrorErr := cnb.DownloadURL(ctx, url, version)

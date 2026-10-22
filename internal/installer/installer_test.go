@@ -127,66 +127,71 @@ fi
 func (f mirrorTransport) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
 
 func TestCNBInstallAndAutomaticRetry(t *testing.T) {
-	for _, mode := range []string{"automatic", "automatic-missing", "cnb", "missing", "old-version"} {
-		t.Run(mode, func(t *testing.T) {
-			t.Setenv("HOME", t.TempDir())
-			t.Setenv("JD_DOWNLOAD_SOURCE", "")
-			if mode != "automatic" && mode != "automatic-missing" {
-				t.Setenv("JD_DOWNLOAD_SOURCE", "cnb")
-			}
-			originalClient, originalGetters := http.DefaultClient, getter.Getters
-			t.Cleanup(func() { http.DefaultClient, getter.Getters = originalClient, originalGetters })
-			var requests []string
-			client := &http.Client{Transport: mirrorTransport(func(r *http.Request) (*http.Response, error) {
-				requests = append(requests, r.URL.String())
-				status, body := http.StatusOK, "#!/bin/sh\nexit 0\n"
-				if r.URL.Host == "github.com" {
-					if mode != "automatic" && mode != "automatic-missing" {
-						t.Fatal("strict CNB contacted GitHub")
+	for _, upstream := range []string{
+		"https://github.com/owner/tool/releases/download/{{.Version}}/demo",
+		"https://dl.k8s.io/release/{{.Version}}/bin/{{.OS}}/{{.Arch}}/kubectl",
+	} {
+		for _, mode := range []string{"automatic", "automatic-missing", "cnb", "missing", "old-version"} {
+			t.Run(upstream+"/"+mode, func(t *testing.T) {
+				t.Setenv("HOME", t.TempDir())
+				t.Setenv("JD_DOWNLOAD_SOURCE", "")
+				if mode != "automatic" && mode != "automatic-missing" {
+					t.Setenv("JD_DOWNLOAD_SOURCE", "cnb")
+				}
+				originalClient, originalGetters := http.DefaultClient, getter.Getters
+				t.Cleanup(func() { http.DefaultClient, getter.Getters = originalClient, originalGetters })
+				var requests []string
+				client := &http.Client{Transport: mirrorTransport(func(r *http.Request) (*http.Response, error) {
+					requests = append(requests, r.URL.String())
+					status, body := http.StatusOK, "#!/bin/sh\nexit 0\n"
+					if r.URL.Host == "github.com" || r.URL.Host == "dl.k8s.io" {
+						if mode != "automatic" && mode != "automatic-missing" {
+							t.Fatal("strict CNB contacted GitHub")
+						}
+						status = http.StatusServiceUnavailable
+					} else if r.URL.Host != "cnb.cool" {
+						t.Fatalf("unexpected host: %s", r.URL.Host)
 					}
-					status = http.StatusServiceUnavailable
-				} else if r.URL.Host != "cnb.cool" {
-					t.Fatalf("unexpected host: %s", r.URL.Host)
+					if strings.HasSuffix(r.URL.Path, "/upstream-version.txt") {
+						body = "v1.2.3\n"
+					}
+					if mode == "missing" || mode == "automatic-missing" {
+						status = http.StatusNotFound
+					}
+					return &http.Response{StatusCode: status, Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header), ContentLength: int64(len(body)), Request: r}, nil
+				})}
+				http.DefaultClient = client
+				getter.Getters = []getter.Getter{&getter.HttpGetter{Client: client}}
+				entry := &registry.PackageEntry{Name: "demo", Mode: "file", URLTemplate: upstream, Methods: []registry.InstallMethod{
+					{Type: "binary", Priority: 100}, {Type: "command", Priority: 80, Command: "exit 0"},
+				}}
+				version := "v1.2.3"
+				if mode == "old-version" {
+					version = "v1.0.0"
 				}
-				if strings.HasSuffix(r.URL.Path, "/upstream-version.txt") {
-					body = "v1.2.3\n"
+				err := Install(t.Context(), entry, version)
+				if mode == "missing" || mode == "automatic-missing" || mode == "old-version" {
+					if err == nil {
+						t.Fatal("expected error without command fallback")
+					}
+					return
 				}
-				if mode == "missing" || mode == "automatic-missing" {
-					status = http.StatusNotFound
+				if err != nil {
+					t.Fatal(err)
 				}
-				return &http.Response{StatusCode: status, Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header), ContentLength: int64(len(body)), Request: r}, nil
-			})}
-			http.DefaultClient = client
-			getter.Getters = []getter.Getter{&getter.HttpGetter{Client: client}}
-			entry := &registry.PackageEntry{Name: "demo", Mode: "file", URLTemplate: "https://github.com/owner/tool/releases/download/{{.Version}}/demo", Methods: []registry.InstallMethod{
-				{Type: "binary", Priority: 100}, {Type: "command", Priority: 80, Command: "exit 0"},
-			}}
-			version := "v1.2.3"
-			if mode == "old-version" {
-				version = "v1.0.0"
-			}
-			err := Install(t.Context(), entry, version)
-			if mode == "missing" || mode == "automatic-missing" || mode == "old-version" {
-				if err == nil {
-					t.Fatal("expected error without command fallback")
+				binDir, err := BinDir()
+				if err != nil {
+					t.Fatal(err)
 				}
-				return
-			}
-			if err != nil {
-				t.Fatal(err)
-			}
-			binDir, err := BinDir()
-			if err != nil {
-				t.Fatal(err)
-			}
-			data, err := os.ReadFile(filepath.Join(binDir, "demo"))
-			if err != nil || string(data) != "#!/bin/sh\nexit 0\n" {
-				t.Fatalf("bad installed binary: %q, %v", data, err)
-			}
-			if len(requests) == 0 {
-				t.Fatal("no requests")
-			}
-		})
+				data, err := os.ReadFile(filepath.Join(binDir, "demo"))
+				if err != nil || string(data) != "#!/bin/sh\nexit 0\n" {
+					t.Fatalf("bad installed binary: %q, %v", data, err)
+				}
+				if len(requests) == 0 {
+					t.Fatal("no requests")
+				}
+			})
+		}
 	}
 }
 

@@ -19,7 +19,7 @@ curl -fsSL https://jd.jimyag.com | sh -s -- gh kubectl
 # Install jd, then install a specific package version
 curl -fsSL https://jd.jimyag.com | sh -s -- gh@2.80.0
 
-# Install jd and a GitHub release binary using only the CNB mirror
+# Install jd and a release binary using only the CNB mirror
 curl -fsSL https://jd.jimyag.com | sh -s -- --cnb zellij
 
 # Show installer help without installing anything
@@ -40,7 +40,7 @@ jd <package>
 # Install a specific version when the selected method supports versions
 jd <package>@<version>
 
-# Use only the latest GitHub release binary mirrored on CNB
+# Use only the latest release binary mirrored on CNB
 jd --cnb zellij
 
 # Force a specific install method
@@ -104,16 +104,17 @@ If the same package name appears in different registry files, the later file rep
 
 The remote registry is cached for 30 minutes in the system cache directory. If the remote registry is unavailable, `jd` falls back to the bundled registry and still applies local overrides. Use `--refresh-registry` or `JD_REFRESH_REMOTE_REGISTRY=1` to force a remote refresh. Set `JD_DISABLE_REMOTE_REGISTRY=1` to use only the bundled and local registries.
 
-By default, jd tries CNB when GitHub registry, latest-version, or binary download
+By default, jd tries CNB when registry, latest-version, or binary download
 requests fail. A binary download retry requires CNB to mirror the same version.
 The installer script also retries CNB when downloading jd itself fails. Installer
 requests allow 30 seconds to connect and retry failures twice. Version lookups
 allow 60 seconds per attempt, and binary downloads allow 10 minutes per attempt.
 
-Use `--cnb` or `JD_DOWNLOAD_SOURCE=cnb` to require CNB for the registry and GitHub
-release binaries. CNB keeps only the latest release per upstream repository.
+Use `--cnb` or `JD_DOWNLOAD_SOURCE=cnb` to require CNB for the registry and
+release binaries, including kubectl, Go, and Helm from their official download
+sites. CNB keeps only the latest release per upstream repository.
 Missing releases, assets, older pinned versions, and packages without a mirrored
-GitHub binary return an error; this mode does not fall back to GitHub or package
+binary return an error; this mode does not fall back to upstream sites or package
 managers. `install.sh --cnb` applies this mode to the packages it installs; use
 `jd --cnb` or the environment variable for subsequent invocations.
 

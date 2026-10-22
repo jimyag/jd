@@ -19,10 +19,27 @@ var ErrUnavailable = errors.New("CNB mirror unavailable")
 func Enabled() bool { return os.Getenv("JD_DOWNLOAD_SOURCE") == "cnb" }
 
 func AssetURL(repo, name string) string {
-	return BaseURL + url.PathEscape("github.com/"+repo+"/latest") + "/" + url.PathEscape(name)
+	source := "github.com/" + repo
+	switch repo {
+	case "kubernetes/kubernetes":
+		source = "dl.k8s.io/kubectl"
+	case "helm/helm":
+		source = "get.helm.sh/helm"
+	case "go.dev/go":
+		source = repo
+	}
+	return BaseURL + url.PathEscape(source+"/latest") + "/" + url.PathEscape(name)
 }
 
-func GitHubRepo(rawURL string) string {
+func Repo(rawURL string) string {
+	switch {
+	case strings.HasPrefix(rawURL, "https://dl.k8s.io/release/"):
+		return "kubernetes/kubernetes"
+	case strings.HasPrefix(rawURL, "https://get.helm.sh/helm-"):
+		return "helm/helm"
+	case strings.HasPrefix(rawURL, "https://go.dev/dl/"):
+		return "go.dev/go"
+	}
 	path, ok := strings.CutPrefix(rawURL, "https://github.com/")
 	if !ok {
 		return ""
@@ -61,7 +78,7 @@ func Latest(ctx context.Context, repo string) (string, error) {
 }
 
 func DownloadURL(ctx context.Context, upstream, version string) (string, error) {
-	repo := GitHubRepo(upstream)
+	repo := Repo(upstream)
 	if repo == "" {
 		return "", fmt.Errorf("CNB does not mirror this binary source: %s", upstream)
 	}
@@ -77,8 +94,26 @@ func DownloadURL(ctx context.Context, upstream, version string) (string, error) 
 		return "", err
 	}
 	_, asset, ok := strings.Cut(u.Path, "/releases/download/"+version+"/")
+	switch u.Host {
+	case "dl.k8s.io":
+		var platform string
+		platform, ok = strings.CutPrefix(u.Path, "/release/"+version+"/bin/")
+		parts := strings.Split(platform, "/")
+		if !ok || len(parts) != 3 || parts[2] != "kubectl" ||
+			(parts[0] != "linux" && parts[0] != "darwin") ||
+			(parts[1] != "amd64" && parts[1] != "arm64") {
+			return "", fmt.Errorf("unsupported kubectl URL: %s", upstream)
+		}
+		asset = "kubectl-" + parts[0] + "-" + parts[1]
+	case "go.dev":
+		asset, ok = strings.CutPrefix(u.Path, "/dl/")
+		ok = ok && strings.HasPrefix(asset, version+".") && strings.HasSuffix(asset, ".tar.gz")
+	case "get.helm.sh":
+		asset, ok = strings.CutPrefix(u.Path, "/")
+		ok = ok && strings.HasPrefix(asset, "helm-"+version+"-") && strings.HasSuffix(asset, ".tar.gz")
+	}
 	if !ok || asset == "" || strings.Contains(asset, "/") {
-		return "", fmt.Errorf("unsupported GitHub release URL: %s", upstream)
+		return "", fmt.Errorf("unsupported binary URL: %s", upstream)
 	}
 	return AssetURL(repo, asset), nil
 }
