@@ -298,7 +298,7 @@ packages:
     inner_path: "codex-{{.Arch}}-{{.OS}}"
     os_map:
       darwin: apple-darwin
-      linux: unknown-linux-gnu
+      linux: unknown-linux-musl
     arch_map:
       amd64: x86_64
       arm64: aarch64
@@ -1394,7 +1394,7 @@ packages:
       type: github
       repo: jgm/pandoc
       tag_prefix: ""
-    url_template: "https://github.com/jgm/pandoc/releases/download/{{.Version}}/pandoc-{{.VersionNoV}}-{{if eq .OS \"macOS\"}}{{if eq .Arch \"amd64\"}}x86_64{{else}}arm64{{end}}{{else}}{{if eq .Arch \"amd64\"}}amd64{{else}}arm64{{end}}{{end}}-{{.OS}}{{if eq .OS \"macOS\"}}.zip{{else}}.tar.gz{{end}}"
+    url_template: "https://github.com/jgm/pandoc/releases/download/{{.Version}}/pandoc-{{.VersionNoV}}-{{if eq .OS \"macOS\"}}{{if eq .Arch \"amd64\"}}x86_64{{else}}arm64{{end}}-macOS.zip{{else}}linux-{{.Arch}}.tar.gz{{end}}"
     inner_path: "pandoc-{{.VersionNoV}}{{if eq .OS \"macOS\"}}-{{if eq .Arch \"amd64\"}}x86_64{{else}}arm64{{end}}{{end}}"
     install_dir: "~/.local/share/jd/installs/pandoc/{{.Version}}"
     binaries: {pandoc: bin/pandoc, pandoc-lua: bin/pandoc-lua, pandoc-server: bin/pandoc-server}
@@ -1821,7 +1821,7 @@ packages:
       type: github
       repo: duckdb/duckdb
       tag_prefix: "v"
-    url_template: "https://github.com/duckdb/duckdb/releases/download/{{.Version}}/duckdb_cli-{{.OS}}-{{.Arch}}.zip"
+    url_template: "https://github.com/duckdb/duckdb/releases/download/{{.Version}}/duckdb-cli-{{.OS}}-{{.Arch}}.tar.gz"
     inner_path: duckdb
     os_map:
       darwin: osx
@@ -3764,8 +3764,8 @@ packages:
       type: github
       repo: YiNNx/cmd-wrapped
       tag_prefix: "v"
-    url_template: "https://github.com/YiNNx/cmd-wrapped/releases/download/{{.Version}}/cmd-wrapped-{{.Arch}}-{{.OS}}.zip"
-    inner_path: "build/cmd-wrapped-{{.Arch}}-{{.OS}}"
+    url_template: "https://github.com/YiNNx/cmd-wrapped/releases/download/{{.Version}}/cmd-wrapped-{{if and (eq .OS \"linux\") (eq .Arch \"arm64\")}}aarch64{{else}}{{.Arch}}{{end}}-{{.OS}}.zip"
+    inner_path: "build/cmd-wrapped-{{if and (eq .OS \"linux\") (eq .Arch \"arm64\")}}aarch64{{else}}{{.Arch}}{{end}}-{{.OS}}"
     supported_platforms: [darwin/amd64, darwin/arm64, linux/amd64, linux/arm64]
     os_map:
       darwin: apple-darwin
