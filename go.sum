@@ -32,6 +32,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/jimmicro/version v1.0.0 h1:xSmSTIXP++HBaaSiI80a9choe/baJFWIgQVY03MzHJ4=
 github.com/jimmicro/version v1.0.0/go.mod h1:/t8xgCGvTfdpjvNgcZGlhZW4weqTcb5DFinrGWZ/9d8=
+github.com/jimmicro/version v1.1.0 h1:s2oSEuUPvI9O+FZxlY2LjXRse6fvyJoFj0TZehwHAqs=
+github.com/jimmicro/version v1.1.0/go.mod h1:/t8xgCGvTfdpjvNgcZGlhZW4weqTcb5DFinrGWZ/9d8=
 github.com/klauspost/compress v1.11.2 h1:MiK62aErc3gIiVEtyzKfeOHgW7atJb5g/KNX5m3c2nQ=
 github.com/klauspost/compress v1.11.2/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
 github.com/klauspost/compress v1.20.3 h1:zWNoFqq/lSuYQRim3dUXlXeA0IqwuZGicdG5ZTfY5j4=

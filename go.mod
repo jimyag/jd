@@ -8,7 +8,7 @@ require (
 	github.com/gofrs/flock v0.12.1
 	github.com/hashicorp/go-getter/v2 v2.2.5
 	github.com/hashicorp/go-version v1.1.0
-	github.com/jimmicro/version v1.0.0
+	github.com/jimmicro/version v1.1.0
 	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
 )
